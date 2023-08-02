@@ -1,0 +1,135 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct Pixel
+{
+    float height;
+    uint details;
+    float pressure;
+    float temperature;
+    float humitidy;
+};
+
+RWTexture2D<float4> result;
+
+RWStructuredBuffer<Pixel> pixels;
+
+int mapMode; // How to display the map
+
+float resolution; // resolution of pixels
+int2 screenResolution; // resolution of the screen
+float deepestPoint; // Deepest point in sea
+float highestPoint; // Highest point on land
+float lowestPoint; // Lowest point on land
+
+float3 cameraPosition;
+float zoom;
+
+static const float PI = 3.14159265;
+
+
+float Width(float x)
+{
+    return sqrt(1 - x * x);
+}
+
+
+float3 UVToPoint(float2 uv)
+{
+    return float3(cos(uv.x * PI), sin(uv.y * PI / 2), sin(uv.x * PI));
+    //return float3(cos(uv.x * PI) * sin(uv.y * PI / 2 + PI / 2), -cos(uv.y * PI / 2 + PI / 2), sin(uv.x * PI) * sin(uv.y * PI / 2 + PI / 2));
+}
+
+// u and v in the range 0 to 1
+float2 PointToUV(float3 p)
+{
+    float u = atan2(p.z, p.x) / PI;
+    float v = (asin(p.y) / PI * 2);
+    return (float2(u, v) + 1) / 2;
+}
+
+// returns the point where the ray hits the sphere centred on the origin with radius 1 (0 if it misses)
+float4 HitSphere(float3 rayOrigin, float3 rayDirection)
+// Thanks https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere/creatingourfirstraytracedimage
+{
+    // don't need a
+    float b = 2.0 * dot(rayOrigin, rayDirection);
+    float c = dot(rayOrigin, rayOrigin) - 1;
+    float discriminant = b*b - 4*c;
+
+    float t = 0;
+    if (discriminant < 0) {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }
+    else {
+        t = (-b - sqrt(discriminant)) / 2;
+    }
+    return float4(normalize(rayOrigin + rayDirection * t), 1.0);
+}
+
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 ndc = id.xy / (float2)screenResolution * 2 - 1; // -1 to 1
+    ndc.x *= screenResolution.x / (float)screenResolution.y;
+
+    float3 rayDirection = -cameraPosition;
+
+    // Assuming left handed coords
+    float3 cameraPerp = normalize(cross(cameraPosition, float3(0.0, 1.0, 0.0)));
+    float3 cameraUp = normalize(cross(cameraPerp, cameraPosition));
+    float3 rayOrigin = cameraPosition + ndc.x * cameraPerp * zoom + ndc.y * cameraUp * zoom; // Doesn't work when camera moves up (needs to rotate)
+
+    float4 p = HitSphere(rayOrigin, rayDirection);
+
+    if (p.w == 0.0) {
+        // Didn't hit sphere
+        result[id.xy] = p;
+        return;
+    }
+
+    float2 uv = PointToUV(p.xyz);
+    //result[id.xy] = float4(uv.x, uv.y, 0.0, 1.0); return; // Debug
+    
+    float step = resolution / (resolution * Width(uv.y * 2 - 1));
+
+    int2 coord = int2(uv.x * resolution * 2, uv.y * resolution);
+
+    coord.x = (int)(coord.x / step) * step;
+
+    Pixel pixel = pixels[coord.x * resolution + coord.y];
+
+    switch(mapMode)
+    {
+        case 0:
+            float height = pixel.height;
+
+            if ((pixel.details >> 0) % 2 == 1) // Is ocean
+            {
+                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
+            }
+            else if (pixel.height == 0)
+            {
+                // Debug
+                result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+            }
+            else
+            {
+                result[id.xy] = float4(0.0, pow(max(0, height / highestPoint), 0.3), 0.0, 1.0);
+                //result[id.xy] = float4(0.0, height / highestPoint, 0.0, 1.0);
+            }
+            break;
+
+        case 1:
+            if ((pixel.details >> 0) % 2 == 1)
+            {
+                result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+            }
+            else
+            {
+                result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+            }
+            break;
+    }
+}
