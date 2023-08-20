@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
+[RequireComponent(typeof(CameraControls))]
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private ComputeShader sphereRenderShader;
@@ -16,13 +17,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Texture2D bathymetryTexture;
     [SerializeField] private float bathymetryMaxDepth;
 
-    [SerializeField] private float movementMultiplier = 1;
-    [SerializeField] private float maxAngle = 80;
-    [SerializeField] private float zoomMultiplier = 1;
-    [SerializeField] private AnimationCurve zoomCurve;
-    [SerializeField] private float maxZoom = 0.01f;
-
-    private float zoom;
+    private CameraControls controls;
 
     private Pixel[] pixels;
     private ComputeBuffer pixelBuffer;
@@ -44,8 +39,8 @@ public class GameManager : MonoBehaviour
 
         MakePixels();
 
+        controls = GetComponent<CameraControls>();
         transform.position = new Vector3(0, 0, 1);
-        zoom = 1;
 
         mapMode = MapMode.Terrain;
 
@@ -107,7 +102,7 @@ public class GameManager : MonoBehaviour
         sphereRenderShader.SetFloat("lowestPoint", 0);
         Vector3 cameraPos = transform.position.normalized;
         sphereRenderShader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y, cameraPos.z });
-        sphereRenderShader.SetFloat("zoom", zoom);
+        sphereRenderShader.SetFloat("zoom", controls.GetZoom());
 
         int kernelIndex = sphereRenderShader.FindKernel("CSMain");
         sphereRenderShader.Dispatch(kernelIndex, screenResolution.width, screenResolution.height, 1);
@@ -145,44 +140,6 @@ public class GameManager : MonoBehaviour
 
     private void GetInputs()
     {
-        // Camera Inputs
-        // Horizontal
-        float horizontal = Input.GetAxis(Inputs.Horizontal) * movementMultiplier * Time.deltaTime;
-
-        // Vertical
-        float vertical = Input.GetAxis(Inputs.Vertical) * movementMultiplier * Time.deltaTime;
-        float angle;
-        if (transform.eulerAngles.x > 90) {
-            angle = transform.eulerAngles.x - 360;
-        }
-        else {
-            angle = transform.eulerAngles.x;
-        }
-        if (angle > maxAngle && vertical > 0) {
-            vertical = 0f;
-        }
-        if (angle < -maxAngle && vertical < 0) {
-            vertical = 0f;
-        }
-
-        transform.LookAt(new Vector3(0, 0, 0));
-
-        // Zoom
-        zoom += -Input.GetAxis(Inputs.Scroll) * zoomMultiplier * Time.deltaTime * zoomCurve.Evaluate(zoom);
-
-        if (zoom < maxZoom)
-        {
-            zoom = maxZoom;
-        }
-        if (zoom > 1)
-        {
-            zoom = 1;
-        }
-
-        // Move
-        transform.Translate(new Vector3(horizontal * Mathf.Sqrt(zoom), vertical * Mathf.Sqrt(zoom), 0));
-        transform.position = transform.position.normalized;
-
         // Map Changes
 
         if (Input.GetKeyDown(KeyCode.Q))

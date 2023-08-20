@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
+[RequireComponent(typeof(CameraControls))]
 public class PointDistribution : MonoBehaviour
 {
     [Range(1, 10000)]
@@ -17,9 +18,13 @@ public class PointDistribution : MonoBehaviour
     private ComputeBuffer pointBuffer;
     private ComputeBuffer colourBuffer;
 
+    private CameraControls controls;
+
     // Start is called before the first frame update
     void Start()
     {
+        controls = GetComponent<CameraControls>();
+
         colours = new float[numPoints];
         // https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere
         points = new Vector3[numPoints];
@@ -62,7 +67,7 @@ public class PointDistribution : MonoBehaviour
         shader.SetInts("screenResolution", new int[] { screenResolution.width, screenResolution.height });
         Vector3 cameraPos = transform.position.normalized;
         shader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y, cameraPos.z });
-        shader.SetFloat("zoom", 1);
+        shader.SetFloat("zoom", controls.GetZoom());
         shader.SetInt("bufferLength", numPoints);
 
         shader.Dispatch(kernelIndex, screenResolution.width, screenResolution.height, 1);

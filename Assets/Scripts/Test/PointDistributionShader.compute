@@ -32,6 +32,45 @@ float4 HitSphere(float3 rayOrigin, float3 rayDirection)
     return float4(normalize(rayOrigin + rayDirection * t), 1.0);
 }
 
+int BinarySearch(float y) {
+    uint start = 0;
+    uint end = bufferLength - 1;
+
+    int closestIndex = 0;
+    while (start <= end) {
+        int mid = (start + end) / 2;
+        closestIndex = mid;
+        if (points[mid].y < y) {
+            start = mid + 1;
+        }
+        else if (points[mid].y > y) {
+            end = mid - 1;
+        }
+        else {
+            return mid;
+        }
+    }
+
+    return closestIndex;
+}
+
+float FindNearest(float3 pos) {
+    int closestYIndex = BinarySearch(pos.y);
+
+    int minIndex = max(0, closestYIndex - 5);
+    int maxIndex = min(bufferLength, closestYIndex + 5);
+
+    float3 closest = points[minIndex];
+    int closestIndex = minIndex;
+    for (int i = minIndex; i < maxIndex; i++) {
+        if (dot(pos, points[i]) > dot(pos, closest)) {
+            closest = points[i];
+            closestIndex = i;
+        }
+    }
+    return colours[closestIndex];
+}
+
 
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -54,16 +93,17 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     }
 
-    float3 pos = float3(p.x, p.y, p.z);
+    //float3 pos = float3(p.x, p.y, p.z);
+    //float3 closest = points[0];
+    //int closestIndex = 0;
+    //for (int i = 0; i < bufferLength; i++) { // VERY SLOW
+    //    if (dot(pos, points[i]) > dot(pos, closest)) {
+    //        closest = points[i];
+    //        closestIndex = i;
+    //    }
+    //}
+    
+    float colour = FindNearest(float3(p.x, p.y, p.z));
 
-    float3 closest = points[0];
-    int closestIndex = 0;
-    for (int i = 0; i < bufferLength; i++) { // VERY SLOW
-        if (dot(pos, points[i]) > dot(pos, closest)) {
-            closest = points[i];
-            closestIndex = i;
-        }
-    }
-
-    Result[id.xy] = float4(colours[closestIndex], colours[closestIndex], colours[closestIndex], 1.0);
+    Result[id.xy] = float4(colour, colour, colour, 1.0);
 }
