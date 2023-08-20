@@ -27,10 +27,17 @@ float zoom;
 
 static const float PI = 3.14159265;
 
-
+// Output between 0 and 1
+// Input between -1 and 1
 float Width(float x)
 {
     return sqrt(1 - x * x);
+}
+
+// Similar to Width but stepped
+float WidthStepped(float x)
+{
+    return min((int)(Width(x) * 11), 10) / 10.0;
 }
 
 
@@ -91,12 +98,39 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float2 uv = PointToUV(p.xyz);
     //result[id.xy] = float4(uv.x, uv.y, 0.0, 1.0); return; // Debug
+
+    int y = uv.y * resolution;
     
-    float step = resolution / (resolution * Width(uv.y * 2 - 1));
+    float pixelWidth = resolution / resolution * WidthStepped(((y / resolution) * 2 - 1));
 
-    int2 coord = int2(uv.x * resolution * 2, uv.y * resolution);
+    int x = uv.x * resolution * 2;
+    x /= pixelWidth;
+    x *= pixelWidth;
 
-    coord.x = (int)(coord.x / step) * step;
+    int2 coord = int2(x, y);
+
+    if (x % 2 == 0)
+    {
+        if (y % 2 == 0)
+        {
+            result[id.xy] = float4(1.0, 0.0, 1.0, 1.0); return;
+        }
+        else
+        {
+            result[id.xy] = float4(1.0, 0.0, 0.0, 1.0); return;
+        }
+    }
+    else
+    {
+        if (y % 2 == 0)
+        {
+            result[id.xy] = float4(0.0, 1.0, 1.0, 1.0); return;
+        }
+        else
+        {
+            result[id.xy] = float4(0.0, 1.0, 0.0, 1.0); return;
+        }
+    }
 
     Pixel pixel = pixels[coord.x * resolution + coord.y];
 

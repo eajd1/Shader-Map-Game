@@ -1,0 +1,69 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+RWStructuredBuffer<float3> points;
+RWStructuredBuffer<float> colours;
+
+int2 screenResolution; // resolution of the screen
+float3 cameraPosition;
+float zoom;
+int bufferLength;
+
+// returns the point where the ray hits the sphere centred on the origin with radius 1 (0 if it misses)
+float4 HitSphere(float3 rayOrigin, float3 rayDirection)
+// Thanks https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere/creatingourfirstraytracedimage
+{
+    // don't need a
+    float b = 2.0 * dot(rayOrigin, rayDirection);
+    float c = dot(rayOrigin, rayOrigin) - 1;
+    float discriminant = b*b - 4*c;
+
+    float t = 0;
+    if (discriminant < 0) {
+        return float4(0.0, 0.0, 0.0, 0.0);
+    }
+    else {
+        t = (-b - sqrt(discriminant)) / 2;
+    }
+    return float4(normalize(rayOrigin + rayDirection * t), 1.0);
+}
+
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 ndc = id.xy / (float2)screenResolution * 2 - 1; // -1 to 1
+    ndc.x *= screenResolution.x / (float)screenResolution.y;
+
+    float3 rayDirection = -cameraPosition;
+
+    // Assuming left handed coords
+    float3 cameraPerp = normalize(cross(cameraPosition, float3(0.0, 1.0, 0.0)));
+    float3 cameraUp = normalize(cross(cameraPerp, cameraPosition));
+    float3 rayOrigin = cameraPosition + ndc.x * cameraPerp * zoom + ndc.y * cameraUp * zoom; // Doesn't work when camera moves up (needs to rotate)
+
+    float4 p = HitSphere(rayOrigin, rayDirection);
+
+    if (p.w == 0.0) {
+        // Didn't hit sphere
+        Result[id.xy] = p;
+        return;
+    }
+
+    float3 pos = float3(p.x, p.y, p.z);
+
+    float3 closest = points[0];
+    int closestIndex = 0;
+    for (int i = 0; i < bufferLength; i++) { // VERY SLOW
+        if (dot(pos, points[i]) > dot(pos, closest)) {
+            closest = points[i];
+            closestIndex = i;
+        }
+    }
+
+    Result[id.xy] = float4(colours[closestIndex], colours[closestIndex], colours[closestIndex], 1.0);
+}
