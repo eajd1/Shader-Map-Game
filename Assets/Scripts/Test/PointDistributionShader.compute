@@ -13,6 +13,10 @@ float3 cameraPosition;
 float zoom;
 int bufferLength;
 
+static float PI = 3.14159265;
+static float PHI = 1.61803398875;
+static float INFINITY = 1.#INF;
+
 // returns the point where the ray hits the sphere centred on the origin with radius 1 (0 if it misses)
 float4 HitSphere(float3 rayOrigin, float3 rayDirection)
 // Thanks https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere/creatingourfirstraytracedimage
@@ -54,11 +58,15 @@ int BinarySearch(float y) {
     return closestIndex;
 }
 
+int ConstantSearch(float y) {
+    return (int)((y + 1) / 2 * bufferLength);
+}
+
 float FindNearest(float3 pos) {
     int closestYIndex = BinarySearch(pos.y);
 
-    int minIndex = max(0, closestYIndex - 5);
-    int maxIndex = min(bufferLength, closestYIndex + 5);
+    int minIndex = max(0, closestYIndex - (sqrt(bufferLength) / 2));
+    int maxIndex = min(bufferLength, closestYIndex + (sqrt(bufferLength) / 2));
 
     float3 closest = points[minIndex];
     int closestIndex = minIndex;
@@ -69,6 +77,62 @@ float FindNearest(float3 pos) {
         }
     }
     return colours[closestIndex];
+}
+
+#define madfrac(A,B) mad((A),(B),-floor((A)*(B)))
+
+float2x2 inverse(float2x2 m) {
+    float determinant = 1 / m._m00 * m._m11 - m._m01 * m._m10;
+    float2x2 adjoint = float2x2(
+        m._m11,
+        -m._m01,
+        -m._m10,
+        m._m00
+        );
+    return mul(determinant, adjoint);
+}
+
+float inverseSF(float3 p, float n) {
+    float phi = min(atan2(p.y, p.x), PI);
+    float cosTheta = p.z;
+
+    float k = max(2, floor(
+        log(n * PI * sqrt(5) * (1 - cosTheta*cosTheta))
+        / log(PHI*PHI)));
+
+    float Fk = pow(PHI, k)/sqrt(5);
+    float F0 = round(Fk), F1 = round(Fk * PHI);
+
+    float2x2 B = float2x2(
+        2*PI*madfrac(F0+1, PHI-1) - 2*PI*(PHI-1),
+        2*PI*madfrac(F1+1, PHI-1) - 2*PI*(PHI-1),
+        -2*F0/n,
+        -2*F1/n);
+    float2x2 invB = inverse(B);
+    float2 c = floor(mul(invB, float2(phi, cosTheta - (1-1/n))));
+
+    float d = INFINITY, j = 0;
+    for (uint s = 0; s < 4; ++s) {
+        float cosTheta = dot(B[1], float2(s%2, s/2) + c) + (1-1/n);
+        cosTheta = clamp(cosTheta, -1, +1)*2 - cosTheta;
+
+        float i = floor(n*0.5 - cosTheta*n*0.5);
+        float phi = 2*PI*madfrac(i, PHI-1);
+        cosTheta = 1 - (2*i + 1)*rcp(n);
+        float sinTheta = sqrt(1 - cosTheta*cosTheta);
+
+        float3 q = float3(
+            cos(phi)*sinTheta,
+            sin(phi)*sinTheta,
+            cosTheta);
+
+        float squaredDistance = dot(q-p, q-p);
+        if (squaredDistance < d) {
+            d = squaredDistance;
+            j = i;
+        }
+    }
+    return j;
 }
 
 
@@ -102,8 +166,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //        closestIndex = i;
     //    }
     //}
+
+    int closestIndex = inverseSF(float3(p.x, p.y, p.z), bufferLength);
+    float colour = colours[closestIndex];
     
-    float colour = FindNearest(float3(p.x, p.y, p.z));
+    //float colour = colours[BinarySearch(p.y)];
+    //float colour = FindNearest(float3(p.x, p.y, p.z));
 
     Result[id.xy] = float4(colour, colour, colour, 1.0);
 }

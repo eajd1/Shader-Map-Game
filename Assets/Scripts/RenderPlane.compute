@@ -1,0 +1,80 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct Pixel
+{
+    float height;
+    uint details;
+    float pressure;
+    float temperature;
+    float humitidy;
+};
+
+RWTexture2D<float4> result;
+
+RWStructuredBuffer<Pixel> pixels;
+
+int mapMode; // How to display the map
+
+float resolution; // resolution of pixels
+int2 screenResolution; // resolution of the screen
+float deepestPoint; // Deepest point in sea
+float highestPoint; // Highest point on land
+float lowestPoint; // Lowest point on land
+
+float2 cameraPosition; // -1 to 1 on x and y
+float zoom;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = id.xy / (float2)screenResolution;
+    uv += cameraPosition;
+
+    uv.x = uv.x % 1;
+    if (uv.x < 0) {
+        uv.x = 1 + uv.x;
+    }
+
+    if (uv.y > 1 || uv.y < 0) {
+        result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    int2 coord = int2(uv.x * resolution * 2, uv.y * resolution);
+
+    Pixel pixel = pixels[coord.x * resolution + coord.y];
+
+    switch(mapMode)
+    {
+        case 0:
+            float height = pixel.height;
+
+            if ((pixel.details >> 0) % 2 == 1) // Is ocean
+            {
+                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
+            }
+            else if (pixel.height == 0)
+            {
+                // Debug
+                result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+            }
+            else
+            {
+                result[id.xy] = float4(0.0, pow(max(0, height / highestPoint), 0.3), 0.0, 1.0);
+                //result[id.xy] = float4(0.0, height / highestPoint, 0.0, 1.0);
+            }
+            break;
+
+        case 1:
+            if ((pixel.details >> 0) % 2 == 1)
+            {
+                result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+            }
+            else
+            {
+                result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+            }
+            break;
+    }
+}

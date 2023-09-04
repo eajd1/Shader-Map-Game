@@ -141,7 +141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!20 &566036669
 Camera:
   m_ObjectHideFlags: 0
@@ -202,7 +202,7 @@ Transform:
   m_GameObject: {fileID: 566036667}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1}
+  m_LocalPosition: {x: 0, y: 0, z: -2.819}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -220,8 +220,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9883bc118c7054f43a5a0542a81f1ad5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numPoints: 500
+  numPoints: 1000
   shader: {fileID: 7200000, guid: 9fc69e92b1d3ba349911e40f4a708a23, type: 3}
+  gizmos: 1
+  test: {x: 1, y: 0.68, z: 0}
 --- !u!114 &566036672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,7 +233,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 566036667}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21d0ba0b09af83141b160c88d15d4844, type: 3}
+  m_Script: {fileID: 11500000, guid: 9b3e54b64fa5a8847a90e920ecacc023, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   movementMultiplier: 1
@@ -242,7 +244,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.0493927
+      value: 0.04953003
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -281,7 +283,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!81 &963194226
 AudioListener:
   m_ObjectHideFlags: 0
@@ -322,7 +324,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 100
   field of view: 60
   orthographic: 1
   orthographic size: 5
@@ -368,41 +370,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74bd16289f861a34387404c81acf790d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sphereRenderShader: {fileID: 7200000, guid: 576b9efbd44d71f488c017cbbfe8d064, type: 3}
+  renderShader: {fileID: 7200000, guid: 0c3df78279bdab745b20090c84df1513, type: 3}
   initialisationShader: {fileID: 7200000, guid: a3797d9919803994faedc40c1dbe94a4, type: 3}
   resolution: 2048
   topographyTexture: {fileID: 2800000, guid: c7f5b7d9d2cec6341817eac8f3428cc5, type: 3}
   topographyMaxHeight: 6400
   bathymetryTexture: {fileID: 2800000, guid: 49081fa2aebb2114dbdc864f819c340c, type: 3}
   bathymetryMaxDepth: -8000
-  movementMultiplier: 1
-  maxAngle: 80
-  zoomMultiplier: 1000
-  zoomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0.0493927
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 2
-      outSlope: 2
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  maxZoom: 0.01
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -412,18 +386,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21d0ba0b09af83141b160c88d15d4844, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b25b2d453bb9d04f87aad43e14b7d01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementMultiplier: 1
-  maxAngle: 80
+  movementMultiplier: 1000
   zoomMultiplier: 1000
   zoomCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.0493927
+      value: 0.04953003
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -443,6 +416,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   maxZoom: 0.01
+  maxMovement: 1000
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

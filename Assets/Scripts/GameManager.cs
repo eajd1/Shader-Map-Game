@@ -7,7 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(CameraControls))]
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private ComputeShader sphereRenderShader;
+    [SerializeField] private ComputeShader renderShader;
     [SerializeField] private ComputeShader initialisationShader;
     [Range(128, 7327)] // Cant go higher than that for some reason
     [SerializeField] private int resolution;
@@ -52,11 +52,11 @@ public class GameManager : MonoBehaviour
         pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
         pixelBuffer.SetData(pixels);
 
-        int kernelIndex = sphereRenderShader.FindKernel("CSMain");
+        int kernelIndex = renderShader.FindKernel("CSMain");
 
-        sphereRenderShader.SetTexture(kernelIndex, "result", renderTexture);
-        sphereRenderShader.SetBuffer(kernelIndex, "pixels", pixelBuffer);
-        sphereRenderShader.SetInts("screenResolution", new int[] { screenResolution.width, screenResolution.height });
+        renderShader.SetTexture(kernelIndex, "result", renderTexture);
+        renderShader.SetBuffer(kernelIndex, "pixels", pixelBuffer);
+        renderShader.SetInts("screenResolution", new int[] { screenResolution.width, screenResolution.height });
 
         UpdateInput();
     }
@@ -95,17 +95,17 @@ public class GameManager : MonoBehaviour
 
     private void UpdateInput()
     {
-        sphereRenderShader.SetInt("mapMode", (int)mapMode);
-        sphereRenderShader.SetFloat("resolution", resolution);
-        sphereRenderShader.SetFloat("deepestPoint", bathymetryMaxDepth);
-        sphereRenderShader.SetFloat("highestPoint", topographyMaxHeight);
-        sphereRenderShader.SetFloat("lowestPoint", 0);
-        Vector3 cameraPos = transform.position.normalized;
-        sphereRenderShader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y, cameraPos.z });
-        sphereRenderShader.SetFloat("zoom", controls.GetZoom());
+        renderShader.SetInt("mapMode", (int)mapMode);
+        renderShader.SetFloat("resolution", resolution);
+        renderShader.SetFloat("deepestPoint", bathymetryMaxDepth);
+        renderShader.SetFloat("highestPoint", topographyMaxHeight);
+        renderShader.SetFloat("lowestPoint", 0);
+        Vector2 cameraPos = controls.GetUV();
+        renderShader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y });
+        renderShader.SetFloat("zoom", controls.GetZoom());
 
-        int kernelIndex = sphereRenderShader.FindKernel("CSMain");
-        sphereRenderShader.Dispatch(kernelIndex, screenResolution.width, screenResolution.height, 1);
+        int kernelIndex = renderShader.FindKernel("CSMain");
+        renderShader.Dispatch(kernelIndex, screenResolution.width, screenResolution.height, 1);
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
