@@ -87,8 +87,7 @@ public class GameManager : MonoBehaviour
     {
         //pixelBuffer.Dispose();
 
-        int sizeOfPixel = sizeof(float) + sizeof(uint);
-        pixelBuffer = new ComputeBuffer(pixels.GetLength(0) * pixels.GetLength(1), sizeOfPixel);
+        pixelBuffer = new ComputeBuffer(pixels.GetLength(0) * pixels.GetLength(1), Pixel.SizeOf());
         pixelBuffer.SetData(pixels);
     }
 
@@ -114,27 +113,29 @@ public class GameManager : MonoBehaviour
 
     private void MakePixels()
     {
-        pixels = new Pixel[2 * resolution * resolution];
+        //pixels = new Pixel[2 * resolution * resolution];
 
-        int kernelIndex = initialisationShader.FindKernel("CSMain");
+        //int kernelIndex = initialisationShader.FindKernel("CSMain");
 
-        pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
-        pixelBuffer.SetData(pixels);
+        //pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
+        //pixelBuffer.SetData(pixels);
 
-        initialisationShader.SetTexture(kernelIndex, "topography", topographyTexture);
-        initialisationShader.SetTexture(kernelIndex, "bathymetry", bathymetryTexture);
-        initialisationShader.SetBuffer(kernelIndex, "pixels", pixelBuffer);
+        //initialisationShader.SetTexture(kernelIndex, "topography", topographyTexture);
+        //initialisationShader.SetTexture(kernelIndex, "bathymetry", bathymetryTexture);
+        //initialisationShader.SetBuffer(kernelIndex, "pixels", pixelBuffer);
 
-        initialisationShader.SetInt("resolution", resolution);
-        initialisationShader.SetInts("textureResolution", new int[] { topographyTexture.width, topographyTexture.height });
-        initialisationShader.SetFloat("maxHeight", topographyMaxHeight);
-        initialisationShader.SetFloat("maxDepth", bathymetryMaxDepth);
+        //initialisationShader.SetInt("resolution", resolution);
+        //initialisationShader.SetInts("textureResolution", new int[] { topographyTexture.width, topographyTexture.height });
+        //initialisationShader.SetFloat("maxHeight", topographyMaxHeight);
+        //initialisationShader.SetFloat("maxDepth", bathymetryMaxDepth);
 
-        initialisationShader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
+        //initialisationShader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
 
-        pixelBuffer.GetData(pixels);
+        //pixelBuffer.GetData(pixels);
 
-        pixelBuffer.Release();
+        //pixelBuffer.Release();
+
+        pixels = ProceduralTerrain.Generate(resolution, (int)bathymetryMaxDepth, (int)topographyMaxHeight);
     }
 
     private void GetInputs()
