@@ -71,6 +71,7 @@ public class SphereCameraControls : CameraControls
 
     public override Vector2 GetUV()
     {
+        // -1 to 1 (technically not uv i know)
         float u = Mathf.Atan2(transform.position.z, transform.position.x) / Mathf.PI;
         float v = (Mathf.Asin(transform.position.y) / Mathf.PI * 2);
         return new Vector2(u, v);

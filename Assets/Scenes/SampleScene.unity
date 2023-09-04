@@ -389,7 +389,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b25b2d453bb9d04f87aad43e14b7d01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementMultiplier: 1000
+  movementMultiplier: 200
   zoomMultiplier: 1000
   zoomCurve:
     serializedVersion: 2

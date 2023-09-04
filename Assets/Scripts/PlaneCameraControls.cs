@@ -16,6 +16,7 @@ public class PlaneCameraControls : CameraControls
     void Start()
     {
         zoom = 1;
+        transform.position = new Vector3(maxMovement / 2f, maxMovement / 2f);
     }
 
     // Update is called once per frame
@@ -71,8 +72,9 @@ public class PlaneCameraControls : CameraControls
 
     public override Vector2 GetUV()
     {
-        float u = transform.position.x / maxMovement;
-        float v = transform.position.y / maxMovement;
+        // -1 to 1 (technically not uv i know)
+        float u = (transform.position.x / maxMovement) * 2 - 1;
+        float v = (transform.position.y / maxMovement) * 2 - 1;
         return new Vector2(u, v);
     }
 }

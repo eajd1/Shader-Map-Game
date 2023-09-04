@@ -40,7 +40,6 @@ public class GameManager : MonoBehaviour
         MakePixels();
 
         controls = GetComponent<CameraControls>();
-        transform.position = new Vector3(0, 0, 1);
 
         mapMode = MapMode.Terrain;
 
