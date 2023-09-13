@@ -377,6 +377,7 @@ MonoBehaviour:
   topographyMaxHeight: 6400
   bathymetryTexture: {fileID: 2800000, guid: 49081fa2aebb2114dbdc864f819c340c, type: 3}
   bathymetryMaxDepth: -8000
+  simulationShader: {fileID: 7200000, guid: 79c55f0e571e6ae47b57c5659ebb7b95, type: 3}
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0

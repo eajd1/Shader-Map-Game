@@ -26,6 +26,8 @@ public class GameManager : MonoBehaviour
     //[SerializeField] private RenderTexture background;
     //[SerializeField] private ComputeShader combine;
 
+    [SerializeField] private ComputeShader simulationShader;
+
     private MapMode mapMode;
 
     void Start()
@@ -48,9 +50,6 @@ public class GameManager : MonoBehaviour
 
     private void InitialiseShader()
     {
-        pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
-        pixelBuffer.SetData(pixels);
-
         int kernelIndex = renderShader.FindKernel("CSMain");
 
         renderShader.SetTexture(kernelIndex, "result", renderTexture);
@@ -62,6 +61,8 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        UpdateWorld();
+
         GetInputs();
 
         UpdateInput();
@@ -70,6 +71,16 @@ public class GameManager : MonoBehaviour
         //combine.SetTexture(kernelIndex, "a", background);
         //combine.SetTexture(kernelIndex, "b", renderTexture);
         //combine.Dispatch(kernelIndex, screenResolution.width, screenResolution.height, 1);
+    }
+
+    private void UpdateWorld()
+    {
+        int kernalIndex = simulationShader.FindKernel("Test");
+        simulationShader.SetBuffer(kernalIndex, "pixels", pixelBuffer);
+        simulationShader.SetInt("resolution", resolution);
+        simulationShader.Dispatch(kernalIndex, 2 * resolution, resolution, 1);
+        pixelBuffer.GetData(pixels);
+        Debug.Log(pixels[0].height);
     }
 
     private void ReadPixelBuffer()
@@ -136,6 +147,9 @@ public class GameManager : MonoBehaviour
         //pixelBuffer.Release();
 
         pixels = ProceduralTerrain.Generate(resolution, (int)bathymetryMaxDepth, (int)topographyMaxHeight);
+
+        pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
+        pixelBuffer.SetData(pixels);
     }
 
     private void GetInputs()

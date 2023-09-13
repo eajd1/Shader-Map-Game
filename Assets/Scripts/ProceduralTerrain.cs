@@ -13,7 +13,7 @@ public class ProceduralTerrain
             {
                 int index = x * resolution + y;
 
-                float h = Mathf.PerlinNoise(x, y) * 2 - 1;
+                float h = Mathf.PerlinNoise(x / (resolution / 4f), y / (resolution / 4f)) * 2 - 1;
 
                 if (h < 0)
                 {
@@ -26,5 +26,11 @@ public class ProceduralTerrain
             }
         }
         return pixels;
+    }
+
+    // decay is between 0 and 1, maxValue can be anything, x should be greater than or equal to 0
+    public static float ExponentialDecay(float maxValue, float decay, float x)
+    {
+        return maxValue * Mathf.Pow(decay, x);
     }
 }
