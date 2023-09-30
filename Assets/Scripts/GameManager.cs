@@ -186,6 +186,42 @@ public class GameManager : MonoBehaviour
         //pixelBuffer.Dispose();
         pixelBuffer.Release();
     }
+
+    public Vector2Int GetCursorIndex()
+    {
+        Vector3 mouseUV = Input.mousePosition;
+        mouseUV.x = (mouseUV.x / screenResolution.width) * 2 - 1;
+        mouseUV.y = (mouseUV.y / screenResolution.height) * 2 - 1;
+
+        Vector2 UV = new Vector2(mouseUV.x, mouseUV.y);
+        UV.Scale(new Vector2(controls.GetZoom(), controls.GetZoom()));
+        UV += controls.GetUV();
+
+        if (UV.x > 1)
+        {
+            UV.x = -1 + (UV.x - 1);
+        }
+        if (UV.x < -1)
+        {
+            UV.x = 1 + (UV.x + 1);
+        }
+        if (UV.y > 1)
+        {
+            UV.y = 1;
+        }
+        if (UV.y < -1)
+        {
+            UV.y = -1;
+        }
+
+        UV.x = (UV.x + 1) / 2;
+        UV.y = (UV.y + 1) / 2;
+
+        int x = (int)(UV.x * 2 * resolution);
+        int y = (int)(UV.y * resolution);
+
+        return new Vector2Int(x, y);
+    }
 }
 
 public struct Pixel
