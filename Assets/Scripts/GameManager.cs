@@ -7,6 +7,31 @@ using UnityEngine;
 [RequireComponent(typeof(CameraControls))]
 public class GameManager : MonoBehaviour
 {
+    private static GameManager instance;
+    public static GameManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                Debug.LogError("No GameManager");
+            }
+            return instance;
+        }
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            instance = this;
+        }
+    }
+
     [SerializeField] private ComputeShader renderShader;
     [SerializeField] private ComputeShader initialisationShader;
     [Range(128, 7327)] // Cant go higher than that for some reason
