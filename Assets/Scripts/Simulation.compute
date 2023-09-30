@@ -10,18 +10,18 @@ struct Pixel
     float humitidy;
 };
 
-RWStructuredBuffer<Pixel> pixels;
+RWStructuredBuffer<float> pixels;
 
 int resolution; // Resolution of pixels (vertical)
 
+
 int2 GetCoord(int2 coord, int2 offset)
 // Calculates the coord with the offset
-// Warning from unity: Integer modulus may be slower than unsigned
 {
     int x = coord.x + offset.x;
     int y = coord.y + offset.y;
 
-    x = x % (resolution * 2);
+    x = x % (uint)(resolution * 2);
     if (x < 0) {
         x = (resolution * 2) + x;
     }
@@ -58,15 +58,19 @@ int GetPositonInBuffer(int2 coord) {
 [numthreads(1,1,1)]
 void Test (uint3 id : SV_DispatchThreadID)
 {
-    int2 signedCoord = int2(id.x, id.y);
+    int2 signedid = int2(id.x, id.y);
 
-    //float height = 0;
-    //height += pixels[GetPositonInBuffer(GetCoord(signedCoord, int2(-1, 0)))].height;
-    //height += pixels[GetPositonInBuffer(GetCoord(signedCoord, int2(1, 0)))].height;
-    //height += pixels[GetPositonInBuffer(GetCoord(signedCoord, int2(0, -1)))].height;
-    //height += pixels[GetPositonInBuffer(GetCoord(signedCoord, int2(0, 1)))].height;
-    //height /= 4;
+    float height = 0;
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(-1, 0)))];
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(1, 0)))];
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(0, -1)))];
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(0, 1)))];
 
-    Pixel pixel = pixels[GetPositonInBuffer(signedCoord)];
-    pixel.height = 1;
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(-1, -1)))];
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(1, 1)))];
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(1, -1)))];
+    height += pixels[GetPositonInBuffer(GetCoord(signedid, int2(-1, 1)))];
+    height /= 8;
+
+    pixels[GetPositonInBuffer(signedid)] = height;
 }

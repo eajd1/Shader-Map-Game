@@ -12,7 +12,7 @@ struct Pixel
 
 RWTexture2D<float4> result;
 
-RWStructuredBuffer<Pixel> pixels;
+RWStructuredBuffer<float> pixels;
 
 int mapMode; // How to display the map
 
@@ -45,31 +45,28 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     int2 coord = int2((uv.x + 1) / 2 * resolution * 2, (uv.y + 1) / 2 * resolution);
 
-    Pixel pixel = pixels[coord.x * resolution + coord.y];
+    float pixel = pixels[coord.x * resolution + coord.y];
 
     switch(mapMode)
     {
         case 0:
-            float height = pixel.height;
-
-            if ((pixel.details >> 0) % 2 == 1) // Is ocean
+            if (pixel < 0) // Is ocean
             {
-                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
+                result[id.xy] = float4(0.0, 0.0, (1 - (pixel / deepestPoint)), 1.0);
             }
-            else if (pixel.height == 0)
+            else if (pixel == 0)
             {
                 // Debug
                 result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
             }
             else
             {
-                result[id.xy] = float4(0.0, pow(max(0, height / highestPoint), 0.3), 0.0, 1.0);
-                //result[id.xy] = float4(0.0, height / highestPoint, 0.0, 1.0);
+                result[id.xy] = float4(0.0, sqrt(pixel / highestPoint) * 0.8 + 0.2, 0.0, 1.0);
             }
             break;
 
         case 1:
-            if ((pixel.details >> 0) % 2 == 1)
+            if (pixel < 0)
             {
                 result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
             }

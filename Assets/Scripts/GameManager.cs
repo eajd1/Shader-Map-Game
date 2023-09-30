@@ -12,14 +12,16 @@ public class GameManager : MonoBehaviour
     [Range(128, 7327)] // Cant go higher than that for some reason
     [SerializeField] private int resolution;
 
-    [SerializeField] private Texture2D topographyTexture;
-    [SerializeField] private float topographyMaxHeight;
-    [SerializeField] private Texture2D bathymetryTexture;
-    [SerializeField] private float bathymetryMaxDepth;
+    [SerializeField] private float maxHeight;
+    [SerializeField] private float maxDepth;
+
+    [SerializeField] private Texture2D heightmap;
+    [SerializeField] private Texture2D bathymap;
+    [SerializeField] private Texture2D sealevelmask;
 
     private CameraControls controls;
 
-    private Pixel[] pixels;
+    private float[] pixels;
     private ComputeBuffer pixelBuffer;
     private RenderTexture renderTexture;
     private Resolution screenResolution;
@@ -27,12 +29,14 @@ public class GameManager : MonoBehaviour
     //[SerializeField] private ComputeShader combine;
 
     [SerializeField] private ComputeShader simulationShader;
+    private bool simulate = false;
 
     private MapMode mapMode;
 
     void Start()
     {
         screenResolution = Screen.currentResolution;
+        controls = GetComponent<CameraControls>();
 
         renderTexture = new RenderTexture(screenResolution.width, screenResolution.height, 1);
         renderTexture.enableRandomWrite = true;
@@ -40,8 +44,6 @@ public class GameManager : MonoBehaviour
         //background.enableRandomWrite = true;
 
         MakePixels();
-
-        controls = GetComponent<CameraControls>();
 
         mapMode = MapMode.Terrain;
 
@@ -61,16 +63,14 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        UpdateWorld();
-
         GetInputs();
 
-        UpdateInput();
+        if (simulate)
+        {
+            //UpdateWorld();
+        }
 
-        //int kernelIndex = combine.FindKernel("CSMain");
-        //combine.SetTexture(kernelIndex, "a", background);
-        //combine.SetTexture(kernelIndex, "b", renderTexture);
-        //combine.Dispatch(kernelIndex, screenResolution.width, screenResolution.height, 1);
+        UpdateInput();
     }
 
     private void UpdateWorld()
@@ -79,35 +79,14 @@ public class GameManager : MonoBehaviour
         simulationShader.SetBuffer(kernalIndex, "pixels", pixelBuffer);
         simulationShader.SetInt("resolution", resolution);
         simulationShader.Dispatch(kernalIndex, 2 * resolution, resolution, 1);
-        pixelBuffer.GetData(pixels);
-        Debug.Log(pixels[0].height);
-    }
-
-    private void ReadPixelBuffer()
-    {
-        Pixel[] temp = new Pixel[2 * resolution * resolution];
-        pixelBuffer.GetData(temp);
-        for (int i = 0; i < temp.Length; i++)
-        {
-            pixels[i] = temp[i];
-        }
-        pixelBuffer.Release();
-    }
-
-    private void WritePixelBuffer()
-    {
-        //pixelBuffer.Dispose();
-
-        pixelBuffer = new ComputeBuffer(pixels.GetLength(0) * pixels.GetLength(1), Pixel.SizeOf());
-        pixelBuffer.SetData(pixels);
     }
 
     private void UpdateInput()
     {
         renderShader.SetInt("mapMode", (int)mapMode);
         renderShader.SetFloat("resolution", resolution);
-        renderShader.SetFloat("deepestPoint", bathymetryMaxDepth);
-        renderShader.SetFloat("highestPoint", topographyMaxHeight);
+        renderShader.SetFloat("deepestPoint", maxDepth);
+        renderShader.SetFloat("highestPoint", maxHeight);
         renderShader.SetFloat("lowestPoint", 0);
         Vector2 cameraPos = controls.GetUV();
         renderShader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y });
@@ -124,21 +103,22 @@ public class GameManager : MonoBehaviour
 
     private void MakePixels()
     {
-        //pixels = new Pixel[2 * resolution * resolution];
+        // Init using compute shader
+        //pixels = new float[2 * resolution * resolution];
 
         //int kernelIndex = initialisationShader.FindKernel("CSMain");
 
-        //pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
+        //pixelBuffer = new ComputeBuffer(pixels.Length, sizeof(float));
         //pixelBuffer.SetData(pixels);
 
-        //initialisationShader.SetTexture(kernelIndex, "topography", topographyTexture);
-        //initialisationShader.SetTexture(kernelIndex, "bathymetry", bathymetryTexture);
+        //initialisationShader.SetTexture(kernelIndex, "topography", heightmap);
+        //initialisationShader.SetTexture(kernelIndex, "bathymetry", bathymap);
         //initialisationShader.SetBuffer(kernelIndex, "pixels", pixelBuffer);
 
         //initialisationShader.SetInt("resolution", resolution);
-        //initialisationShader.SetInts("textureResolution", new int[] { topographyTexture.width, topographyTexture.height });
-        //initialisationShader.SetFloat("maxHeight", topographyMaxHeight);
-        //initialisationShader.SetFloat("maxDepth", bathymetryMaxDepth);
+        //initialisationShader.SetInts("textureResolution", new int[] { heightmap.width, heightmap.height });
+        //initialisationShader.SetFloat("maxHeight", maxHeight);
+        //initialisationShader.SetFloat("maxDepth", maxDepth);
 
         //initialisationShader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
 
@@ -146,9 +126,13 @@ public class GameManager : MonoBehaviour
 
         //pixelBuffer.Release();
 
-        pixels = ProceduralTerrain.Generate(resolution, (int)bathymetryMaxDepth, (int)topographyMaxHeight);
+        // Init using procedural generation
+        //pixels = ProceduralTerrain.Generate(resolution, (int)maxDepth, (int)maxHeight);
 
-        pixelBuffer = new ComputeBuffer(pixels.Length, Pixel.SizeOf());
+        // Init using c#
+        pixels = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask);
+
+        pixelBuffer = new ComputeBuffer(pixels.Length, sizeof(float));
         pixelBuffer.SetData(pixels);
     }
 
@@ -164,6 +148,11 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E))
         {
             mapMode = MapMode.Ocean;
+        }
+
+        if (Input.GetButtonDown(Inputs.LMB))
+        {
+            simulate = !simulate;
         }
     }
 

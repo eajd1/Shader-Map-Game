@@ -373,10 +373,11 @@ MonoBehaviour:
   renderShader: {fileID: 7200000, guid: 0c3df78279bdab745b20090c84df1513, type: 3}
   initialisationShader: {fileID: 7200000, guid: a3797d9919803994faedc40c1dbe94a4, type: 3}
   resolution: 2048
-  topographyTexture: {fileID: 2800000, guid: c7f5b7d9d2cec6341817eac8f3428cc5, type: 3}
-  topographyMaxHeight: 6400
-  bathymetryTexture: {fileID: 2800000, guid: 49081fa2aebb2114dbdc864f819c340c, type: 3}
-  bathymetryMaxDepth: -8000
+  maxHeight: 5000
+  maxDepth: -5000
+  heightmap: {fileID: 2800000, guid: c7f5b7d9d2cec6341817eac8f3428cc5, type: 3}
+  bathymap: {fileID: 2800000, guid: 49081fa2aebb2114dbdc864f819c340c, type: 3}
+  sealevelmask: {fileID: 2800000, guid: 83d24cf6125caec4b9453bc6af9b52d9, type: 3}
   simulationShader: {fileID: 7200000, guid: 79c55f0e571e6ae47b57c5659ebb7b95, type: 3}
 --- !u!114 &963194230
 MonoBehaviour:

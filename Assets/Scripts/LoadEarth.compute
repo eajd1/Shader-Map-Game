@@ -1,19 +1,10 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-struct Pixel
-{
-    float height;
-    uint details;
-    float pressure;
-    float temperature;
-    float humitidy;
-};
-
 Texture2D<float> topography;
 Texture2D<float> bathymetry;
 
-RWStructuredBuffer<Pixel> pixels;
+RWStructuredBuffer<float> pixels;
 
 uint resolution; // Resolution of pixels
 uint2 textureResolution; // Resolution of the textures
@@ -35,21 +26,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float height = topoHeight + bathyHeight;
 
-    pixels[id.x * resolution + id.y].height = height;
-    //pixels[id.x * resolution + id.y].height = 1;
+    pixels[id.x * resolution + id.y] = height;
+    //pixels[id.x * resolution + id.y] = 1;
 
     // For Debugging the shear glitch
     //if (id.y % 2 == 0) {
-    //    pixels[id.x * resolution + id.y].height = 100;
+    //    pixels[id.x * resolution + id.y] = 100;
     //}
     //else {
-    //    pixels[id.x * resolution + id.y].height = -100;
+    //    pixels[id.x * resolution + id.y] = -100;
     //}
-
-    uint details = 0;
-    if (height < 0) {
-        details += 1 << 0; // Ocean
-    }
-
-    pixels[id.x * resolution + id.y].details = details;
 }
