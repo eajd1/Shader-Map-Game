@@ -1,7 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-struct Pixel
+struct height
 {
     float height;
     uint details;
@@ -12,11 +12,14 @@ struct Pixel
 
 RWTexture2D<float4> result;
 
-RWStructuredBuffer<float> pixels;
+RWStructuredBuffer<float> heights;
+
+RWStructuredBuffer<int> countryIds;
+RWStructuredBuffer<float3> countryColours;
 
 int mapMode; // How to display the map
 
-float resolution; // resolution of pixels
+float resolution; // resolution of heights
 int2 screenResolution; // resolution of the screen
 float deepestPoint; // Deepest point in sea
 float highestPoint; // Highest point on land
@@ -45,34 +48,46 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     int2 coord = int2((uv.x + 1) / 2 * resolution * 2, (uv.y + 1) / 2 * resolution);
 
-    float pixel = pixels[coord.x * resolution + coord.y];
+    float height = heights[coord.x * resolution + coord.y];
 
     switch(mapMode)
     {
-        case 0:
-            if (pixel < 0) // Is ocean
+        case 0: // Terrain
+            if (height < 0) // Is ocean
             {
-                result[id.xy] = float4(0.0, 0.0, (1 - (pixel / deepestPoint)), 1.0);
+                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
             }
-            else if (pixel == 0)
+            else if (height == 0)
             {
                 // Debug
                 result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
             }
             else
             {
-                result[id.xy] = float4(0.0, sqrt(pixel / highestPoint) * 0.8 + 0.2, 0.0, 1.0);
+                result[id.xy] = float4(0.0, sqrt(height / highestPoint) * 0.8 + 0.2, 0.0, 1.0);
             }
             break;
 
-        case 1:
-            if (pixel < 0)
+        case 1: // Ocean
+            if (height < 0)
             {
                 result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
             }
             else
             {
                 result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+            }
+            break;
+
+        case 2: // Country
+            if (height < 0) // Is ocean
+            {
+                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
+            }
+            else {
+                int countryID = countryIds[coord.x * resolution + coord.y];
+                float3 countryColour = countryColours[countryID];
+                result[id.xy] = float4(countryColour, 1.0);
             }
             break;
     }

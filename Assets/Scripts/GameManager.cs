@@ -52,8 +52,11 @@ public class GameManager : MonoBehaviour
     private ComputeBuffer heightBuffer;
     private RenderTexture renderTexture;
     private Resolution screenResolution;
-    //[SerializeField] private RenderTexture background;
-    //[SerializeField] private ComputeShader combine;
+
+    private CountryManager countryManager;
+    private int[] countryids; // an id for each pixel in world
+    private ComputeBuffer idBuffer;
+    private ComputeBuffer countryColoursBuffer;
 
     [SerializeField] private ComputeShader simulationShader;
     private bool simulate = false;
@@ -70,6 +73,9 @@ public class GameManager : MonoBehaviour
         renderTexture.Create();
         //background.enableRandomWrite = true;
 
+        countryManager = new CountryManager();
+        countryids = new int[2 * resolution * resolution];
+
         MakePixels();
 
         mapMode = MapMode.Terrain;
@@ -82,10 +88,33 @@ public class GameManager : MonoBehaviour
         int kernelIndex = renderShader.FindKernel("CSMain");
 
         renderShader.SetTexture(kernelIndex, "result", renderTexture);
-        renderShader.SetBuffer(kernelIndex, "pixels", heightBuffer);
+        renderShader.SetBuffer(kernelIndex, "heights", heightBuffer);
         renderShader.SetInts("screenResolution", new int[] { screenResolution.width, screenResolution.height });
 
-        UpdateInput();
+        UpdateCountryBuffers();
+        RenderWorld();
+    }
+
+    private void UpdateCountryBuffers()
+    {
+        if (idBuffer != null)
+        {
+            idBuffer.Release();
+        }
+        idBuffer = new ComputeBuffer(countryids.Length, sizeof(int));
+        idBuffer.SetData(countryids);
+
+        if (countryColoursBuffer != null)
+        {
+            countryColoursBuffer.Release();
+        }
+        Vector3[] colours = countryManager.GetColours();
+        countryColoursBuffer = new ComputeBuffer(colours.Length, sizeof(float) * 3);
+        countryColoursBuffer.SetData(colours);
+
+        int kernelIndex = renderShader.FindKernel("CSMain");
+        renderShader.SetBuffer(kernelIndex, "countryIds", idBuffer);
+        renderShader.SetBuffer(kernelIndex, "countryColours", countryColoursBuffer);
     }
 
     void Update()
@@ -97,7 +126,7 @@ public class GameManager : MonoBehaviour
             //UpdateWorld();
         }
 
-        UpdateInput();
+        RenderWorld();
     }
 
     private void UpdateWorld()
@@ -108,7 +137,7 @@ public class GameManager : MonoBehaviour
         simulationShader.Dispatch(kernalIndex, 2 * resolution, resolution, 1);
     }
 
-    private void UpdateInput()
+    private void RenderWorld()
     {
         renderShader.SetInt("mapMode", (int)mapMode);
         renderShader.SetFloat("resolution", resolution);
@@ -177,9 +206,21 @@ public class GameManager : MonoBehaviour
             mapMode = MapMode.Ocean;
         }
 
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            mapMode = MapMode.Country;
+        }
+
         if (Input.GetButtonDown(Inputs.LMB))
         {
             simulate = !simulate;
+        }
+
+        if (Input.GetButtonDown(Inputs.RMB))
+        {
+            Vector2Int pos = GetCursorIndex();
+            countryids[pos.x * resolution + pos.y] = 1;
+            UpdateCountryBuffers();
         }
     }
 
@@ -187,6 +228,8 @@ public class GameManager : MonoBehaviour
     {
         //pixelBuffer.Dispose();
         heightBuffer.Release();
+        idBuffer.Release();
+        countryColoursBuffer.Release();
     }
 
     public Vector2Int GetCursorIndex()
@@ -265,5 +308,6 @@ public struct Pixel
 public enum MapMode
 {
     Terrain,
-    Ocean
+    Ocean,
+    Country
 }
