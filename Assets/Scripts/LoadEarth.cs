@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LoadEarth
 {
-    public static float[] GenerateEarth(int resolution, float maxDepth, float maxHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask)
+    public static float[] GenerateEarth(int resolution, float maxDepth, float maxHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask, float threshold)
     {
         float[] heights = new float[2 * resolution * resolution];
 
@@ -14,7 +14,7 @@ public class LoadEarth
             {
                 int index = x * resolution + y;
 
-                if (GetPixel(sealevelmask, x, y, resolution).r > 0)
+                if (GetPixel(sealevelmask, x, y, resolution).r > threshold)
                 {
                     heights[index] = Mathf.Max(GetPixel(heightmap, x, y, resolution).r * maxHeight, 0.1f);
                 }

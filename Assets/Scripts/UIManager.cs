@@ -42,6 +42,6 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         Vector2Int pos = GameManager.Instance.GetCursorIndex();
-        text.text = $"X:{pos.x}\nY:{pos.y}";
+        text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {GameManager.Instance.GetHeightAtCursor()}";
     }
 }

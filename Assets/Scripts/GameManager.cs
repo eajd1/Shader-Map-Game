@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Camera))]
 [RequireComponent(typeof(CameraControls))]
@@ -43,11 +44,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Texture2D heightmap;
     [SerializeField] private Texture2D bathymap;
     [SerializeField] private Texture2D sealevelmask;
+    [SerializeField] private float maskThreshold;
 
     private CameraControls controls;
 
-    private float[] pixels;
-    private ComputeBuffer pixelBuffer;
+    private float[] heights;
+    private ComputeBuffer heightBuffer;
     private RenderTexture renderTexture;
     private Resolution screenResolution;
     //[SerializeField] private RenderTexture background;
@@ -80,7 +82,7 @@ public class GameManager : MonoBehaviour
         int kernelIndex = renderShader.FindKernel("CSMain");
 
         renderShader.SetTexture(kernelIndex, "result", renderTexture);
-        renderShader.SetBuffer(kernelIndex, "pixels", pixelBuffer);
+        renderShader.SetBuffer(kernelIndex, "pixels", heightBuffer);
         renderShader.SetInts("screenResolution", new int[] { screenResolution.width, screenResolution.height });
 
         UpdateInput();
@@ -101,7 +103,7 @@ public class GameManager : MonoBehaviour
     private void UpdateWorld()
     {
         int kernalIndex = simulationShader.FindKernel("Test");
-        simulationShader.SetBuffer(kernalIndex, "pixels", pixelBuffer);
+        simulationShader.SetBuffer(kernalIndex, "pixels", heightBuffer);
         simulationShader.SetInt("resolution", resolution);
         simulationShader.Dispatch(kernalIndex, 2 * resolution, resolution, 1);
     }
@@ -155,10 +157,10 @@ public class GameManager : MonoBehaviour
         //pixels = ProceduralTerrain.Generate(resolution, (int)maxDepth, (int)maxHeight);
 
         // Init using c#
-        pixels = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask);
+        heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
 
-        pixelBuffer = new ComputeBuffer(pixels.Length, sizeof(float));
-        pixelBuffer.SetData(pixels);
+        heightBuffer = new ComputeBuffer(heights.Length, sizeof(float));
+        heightBuffer.SetData(heights);
     }
 
     private void GetInputs()
@@ -184,7 +186,7 @@ public class GameManager : MonoBehaviour
     private void OnApplicationQuit()
     {
         //pixelBuffer.Dispose();
-        pixelBuffer.Release();
+        heightBuffer.Release();
     }
 
     public Vector2Int GetCursorIndex()
@@ -197,11 +199,11 @@ public class GameManager : MonoBehaviour
         UV.Scale(new Vector2(controls.GetZoom(), controls.GetZoom()));
         UV += controls.GetUV();
 
-        if (UV.x > 1)
+        while (UV.x > 1)
         {
             UV.x = -1 + (UV.x - 1);
         }
-        if (UV.x < -1)
+        while (UV.x < -1)
         {
             UV.x = 1 + (UV.x + 1);
         }
@@ -219,8 +221,16 @@ public class GameManager : MonoBehaviour
 
         int x = (int)(UV.x * 2 * resolution);
         int y = (int)(UV.y * resolution);
+        y = Mathf.Clamp(y, 0, resolution - 1);
 
         return new Vector2Int(x, y);
+    }
+
+    public float GetHeightAtCursor()
+    {
+        Vector2Int pos = GetCursorIndex();
+        int index = pos.x * resolution + pos.y;
+        return heights[index];
     }
 }
 
