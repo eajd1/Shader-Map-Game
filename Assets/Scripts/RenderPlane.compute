@@ -50,22 +50,25 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float height = heights[coord.x * resolution + coord.y];
 
+    float3 terrainColour;
+    if (height < 0) // Is ocean
+    {
+        terrainColour = float3(0.0, 0.0, (1 - (height / deepestPoint)));
+    }
+    else if (height == 0)
+    {
+        // Debug
+        terrainColour = float3(0.0, 0.0, 0.0);
+    }
+    else
+    {
+        terrainColour = float3(0.0, sqrt(height / highestPoint) * 0.8 + 0.2, 0.0);
+    }
+
     switch(mapMode)
     {
         case 0: // Terrain
-            if (height < 0) // Is ocean
-            {
-                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
-            }
-            else if (height == 0)
-            {
-                // Debug
-                result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
-            }
-            else
-            {
-                result[id.xy] = float4(0.0, sqrt(height / highestPoint) * 0.8 + 0.2, 0.0, 1.0);
-            }
+            result[id.xy] = float4(terrainColour, 1.0);
             break;
 
         case 1: // Ocean
@@ -80,15 +83,16 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             break;
 
         case 2: // Country
-            if (height < 0) // Is ocean
+            int countryID = countryIds[coord.x * resolution + coord.y];
+            if (countryID == 0)
             {
-                result[id.xy] = float4(0.0, 0.0, (1 - (height / deepestPoint)), 1.0);
+                result[id.xy] = float4(terrainColour, 1.0);
+                return;
             }
-            else {
-                int countryID = countryIds[coord.x * resolution + coord.y];
-                float3 countryColour = countryColours[countryID];
-                result[id.xy] = float4(countryColour, 1.0);
-            }
+
+            float3 countryColour = countryColours[countryID];
+
+            result[id.xy] = float4(0.5 * countryColour + 0.5 * terrainColour, 1.0);
             break;
     }
 }

@@ -47,6 +47,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float maskThreshold;
 
     private CameraControls controls;
+    private Vector2Int cursorPosition;
 
     private float[] heights;
     private ComputeBuffer heightBuffer;
@@ -120,6 +121,7 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         GetInputs();
+        UpdateCursorPosition();
 
         if (simulate)
         {
@@ -211,17 +213,35 @@ public class GameManager : MonoBehaviour
             mapMode = MapMode.Country;
         }
 
-        if (Input.GetButtonDown(Inputs.LMB))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             simulate = !simulate;
         }
 
-        if (Input.GetButtonDown(Inputs.RMB))
+        if (Input.GetButton(Inputs.LMB))
         {
             Vector2Int pos = GetCursorIndex();
+            if (countryids[pos.x * resolution + pos.y] != 1)
+            {
             countryids[pos.x * resolution + pos.y] = 1;
             UpdateCountryBuffers();
+            }
         }
+        if (Input.GetButton(Inputs.RMB))
+        {
+            Vector2Int pos = GetCursorIndex();
+            if (countryids[pos.x * resolution + pos.y] != 0)
+            {
+                countryids[pos.x * resolution + pos.y] = 0;
+                UpdateCountryBuffers();
+            }
+        }
+    }
+
+    public void SetPixelOwner(Vector2Int position, int id)
+    {
+        countryids[position.x * resolution + position.y] = id;
+        UpdateCountryBuffers();
     }
 
     private void OnApplicationQuit()
@@ -232,7 +252,7 @@ public class GameManager : MonoBehaviour
         countryColoursBuffer.Release();
     }
 
-    public Vector2Int GetCursorIndex()
+    private void UpdateCursorPosition()
     {
         Vector3 mouseUV = Input.mousePosition;
         mouseUV.x = (mouseUV.x / screenResolution.width) * 2 - 1;
@@ -266,7 +286,12 @@ public class GameManager : MonoBehaviour
         int y = (int)(UV.y * resolution);
         y = Mathf.Clamp(y, 0, resolution - 1);
 
-        return new Vector2Int(x, y);
+        cursorPosition = new Vector2Int(x, y);
+    }
+
+    public Vector2Int GetCursorIndex()
+    {
+        return cursorPosition;
     }
 
     public float GetHeightAtCursor()
