@@ -359,6 +359,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 270539420}
   m_CullTransparentMesh: 1
+--- !u!1 &320172322
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 320172323}
+  - component: {fileID: 320172324}
+  m_Layer: 0
+  m_Name: World
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &320172323
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320172322}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 944.13293, y: 482.49997, z: 1091.6816}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &320172324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320172322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7fe9c7e1f071f1458d88513dd8a3e8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resolution: 2048
+  heightmap: {fileID: 2800000, guid: c7f5b7d9d2cec6341817eac8f3428cc5, type: 3}
+  bathymap: {fileID: 2800000, guid: 49081fa2aebb2114dbdc864f819c340c, type: 3}
+  sealevelmask: {fileID: 2800000, guid: 83d24cf6125caec4b9453bc6af9b52d9, type: 3}
+  maskThreshold: 0.6
+  maxHeight: 5000
+  maxDepth: -5000
+  simulationShader: {fileID: 0}
 --- !u!1 &566036667
 GameObject:
   m_ObjectHideFlags: 0
@@ -516,7 +568,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &768821923
 Transform:
   m_ObjectHideFlags: 0
@@ -558,8 +610,9 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
-  - component: {fileID: 963194229}
   - component: {fileID: 963194230}
+  - component: {fileID: 963194231}
+  - component: {fileID: 963194232}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -619,8 +672,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -641,28 +694,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &963194229
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74bd16289f861a34387404c81acf790d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  renderShader: {fileID: 7200000, guid: 0c3df78279bdab745b20090c84df1513, type: 3}
-  initialisationShader: {fileID: 7200000, guid: a3797d9919803994faedc40c1dbe94a4, type: 3}
-  resolution: 2048
-  maxHeight: 5000
-  maxDepth: -5000
-  heightmap: {fileID: 2800000, guid: c7f5b7d9d2cec6341817eac8f3428cc5, type: 3}
-  bathymap: {fileID: 2800000, guid: 49081fa2aebb2114dbdc864f819c340c, type: 3}
-  sealevelmask: {fileID: 2800000, guid: 83d24cf6125caec4b9453bc6af9b52d9, type: 3}
-  maskThreshold: 0.6
-  simulationShader: {fileID: 7200000, guid: 79c55f0e571e6ae47b57c5659ebb7b95, type: 3}
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -703,6 +734,31 @@ MonoBehaviour:
     m_RotationOrder: 4
   maxZoom: 0.01
   maxMovement: 1000
+--- !u!114 &963194231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b7ec60cb2acb8849b21d83f18f00101, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &963194232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f254f847cfe96749a10e6337a04d0b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderShader: {fileID: 7200000, guid: 0c3df78279bdab745b20090c84df1513, type: 3}
 --- !u!1 &971172686
 GameObject:
   m_ObjectHideFlags: 0
@@ -778,3 +834,4 @@ SceneRoots:
   - {fileID: 963194228}
   - {fileID: 566036670}
   - {fileID: 768821923}
+  - {fileID: 320172323}

@@ -329,10 +329,3 @@ public struct Pixel
         return sizeof(float) * 4 + sizeof(uint);
     }
 }
-
-public enum MapMode
-{
-    Terrain,
-    Ocean,
-    Country
-}
