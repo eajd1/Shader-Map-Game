@@ -8,6 +8,8 @@ public class RenderWorld : MonoBehaviour
     // RenderWorld runs the shaders the display the world
 
     [SerializeField] private ComputeShader renderShader;
+    [Range(0, 1)]
+    [SerializeField] private float countryOpacity;
     private Resolution screenResolution;
     private RenderTexture renderTexture;
     private PlayerController playerController;
@@ -50,6 +52,7 @@ public class RenderWorld : MonoBehaviour
         renderShader.SetFloat("deepestPoint", World.Instance.MaxDepth);
         renderShader.SetFloat("highestPoint", World.Instance.MaxHeight);
         renderShader.SetFloat("lowestPoint", 0);
+        renderShader.SetFloat("countryOpacity", countryOpacity);
         Vector2 cameraPos = playerController.GetControls().GetUV();
         renderShader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y });
         renderShader.SetFloat("zoom", playerController.GetControls().GetZoom());

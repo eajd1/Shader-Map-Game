@@ -24,6 +24,7 @@ int2 screenResolution; // resolution of the screen
 float deepestPoint; // Deepest point in sea
 float highestPoint; // Highest point on land
 float lowestPoint; // Lowest point on land
+float countryOpacity; // Opacity of the countries in country map mode
 
 float2 cameraPosition; // -1 to 1 on x and y
 float zoom;
@@ -132,7 +133,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                 return;
             }
 
-            result[id.xy] = float4(0.5 * countryColour + 0.5 * terrainColour, 1.0);
+            result[id.xy] = float4((1 - countryOpacity) * countryColour + countryOpacity * terrainColour, 1.0);
             break;
 
         case 3: //Borders
