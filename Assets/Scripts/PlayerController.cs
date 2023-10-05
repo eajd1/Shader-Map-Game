@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Threading;
 
 [RequireComponent(typeof(CameraControls))]
 [RequireComponent(typeof(RenderWorld))]
 public class PlayerController : MonoBehaviour
 {
     // PlayerController deals with all player input except for camera movement
+
+    [SerializeField] private int selectedCountry;
 
     private CameraControls controls;
     private RenderWorld renderWorld;
@@ -27,12 +28,13 @@ public class PlayerController : MonoBehaviour
         renderWorld = GetComponent<RenderWorld>();
         mapMode = MapMode.Terrain;
 
-        country = World.Instance.GetCountry(1);
+        country = World.Instance.GetCountry(selectedCountry);
     }
 
     // Update is called once per frame
     void Update()
     {
+        country = World.Instance.GetCountry(selectedCountry);
         UpdateCursorPosition();
 
         // Input Changes
@@ -109,7 +111,7 @@ public class PlayerController : MonoBehaviour
         int y = (int)(UV.y * World.Instance.WorldResolution);
         y = Mathf.Clamp(y, 0, World.Instance.WorldResolution - 1);
 
-        cursorPosition = new Vector2Int(x, y);
+        cursorPosition = World.Instance.ValidatePosition(new Vector2Int(x, y));
     }
 
     private int GetIndex()

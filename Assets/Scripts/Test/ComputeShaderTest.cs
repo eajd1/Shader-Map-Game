@@ -265,3 +265,17 @@ public class ComputeShaderTest : MonoBehaviour
         pixelBuffer.Dispose();
     }
 }
+
+public struct Pixel
+{
+    float height;
+    uint details;
+    float pressure;
+    float temperature;
+    float humitidy;
+
+    public static int SizeOf()
+    {
+        return sizeof(uint) + sizeof(float) * 4;
+    }
+}
