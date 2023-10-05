@@ -11,12 +11,13 @@ public class RenderWorld : MonoBehaviour
     private Resolution screenResolution;
     private RenderTexture renderTexture;
     private PlayerController playerController;
+    private WorldData data;
+
 
     // Start is called before the first frame update
     void Start()
     {
         playerController = GetComponent<PlayerController>();
-
         screenResolution = Screen.currentResolution;
         renderTexture = new RenderTexture(screenResolution.width, screenResolution.height, 1);
         renderTexture.enableRandomWrite = true;
@@ -33,7 +34,12 @@ public class RenderWorld : MonoBehaviour
     private IEnumerator AfterStart()
     {
         yield return new WaitForEndOfFrame();
-        UpdateBuffers();
+        data = new WorldData(World.Instance.Heights, World.Instance.IDs, World.Instance.Countries);
+        World.Instance.Subscribe(data);
+        int kernelIndex = renderShader.FindKernel("CSMain");
+        renderShader.SetBuffer(kernelIndex, "heights", data.heightBuffer);
+        renderShader.SetBuffer(kernelIndex, "countryIds", data.idBuffer);
+        renderShader.SetBuffer(kernelIndex, "countryColours", data.countryColourBuffer);
     }
 
     // Update is called once per frame
@@ -60,18 +66,16 @@ public class RenderWorld : MonoBehaviour
         Graphics.Blit(renderTexture, destination);
     }
 
-    private void UpdateBuffers()
-    {
-        int kernelIndex = renderShader.FindKernel("CSMain");
-        renderShader.SetBuffer(kernelIndex, "heights", World.Instance.GetBuffer("height"));
-        renderShader.SetBuffer(kernelIndex, "countryIds", World.Instance.GetBuffer("id"));
-        renderShader.SetBuffer(kernelIndex, "countryColours", World.Instance.GetBuffer("countryColour"));
-    }
-
     private bool BuffersExist()
     {
-        return World.Instance.GetBuffer("height") != null &&
-            World.Instance.GetBuffer("id") != null &&
-            World.Instance.GetBuffer("countryColour") != null;
+        return data != null &&
+            data.heightBuffer != null &&
+            data.idBuffer != null &&
+            data.countryColourBuffer != null;
+    }
+
+    private void OnApplicationQuit()
+    {
+        data.ReleaseBuffers();
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 public class World : MonoBehaviour
 {
@@ -21,60 +20,123 @@ public class World : MonoBehaviour
     [SerializeField] private float maxHeight;
     [SerializeField] private float maxDepth;
     [SerializeField] private ComputeShader simulationShader;
+    [SerializeField] private ComputeShader updateShader;
 
     private float[] heights; // heights of each point in the world
-    private ComputeBuffer heightBuffer;
     private int[] ids; // id of the owner of each point in the world
-    private ComputeBuffer idBuffer;
+    private WorldData data;
     private Country[] countries; // all the countries in the world
-    private ComputeBuffer countryColourBuffer;
 
+    private List<WorldData> subscribers;
+    private List<Change> changes;
     private bool simulate;
 
     public float MaxHeight { get { return maxHeight; } }
     public float MaxDepth { get { return maxDepth; } }
     public int WorldResolution { get { return resolution; } }
-
-    public ComputeBuffer GetBuffer(string name)
-    {
-        return name switch
-        {
-            "height" => heightBuffer,
-            "id" => idBuffer,
-            "countryColour" => countryColourBuffer,
-            _ => throw new System.Exception($"Invalid buffer name: '{name}'"),
-        };
-    }
+    public float[] Heights { get { return heights; } }
+    public int[] IDs { get { return ids; } }
+    public Country[] Countries { get { return countries; } }
 
     public void ToggleSimulation() => simulate = !simulate;
+    public Country GetCountry(int index) => countries[index];
+    public void Subscribe(WorldData subscriber) => subscribers.Add(subscriber);
+    public void GetChange(Change change) { lock (changes) { changes.Add(change); } }
+    public void SetOwner(int index, int owner)
+    {
+        if (!(ids[index] == owner))
+        {
+            ids[index] = owner;
+            changes.Add(new Change(index, heights[index], owner));
+        }
+    }
+    public void SetOwnerFill(int startX, int startY, int owner)
+    {
+
+    }
 
     // Start is called before the first frame update
     void Start()
     {
+        subscribers = new List<WorldData>();
+        changes = new List<Change>();
+
         heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
         ids = new int[2 * resolution * resolution];
         LoadCountries();
 
-        MakeBuffers();
+        data = new WorldData(heights, ids, countries);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        SendChanges();
     }
 
-    // MakeBuffers should be called last in Start()
-    private void MakeBuffers()
+    private void SendChanges()
     {
-        heightBuffer = new ComputeBuffer(heights.Length, sizeof(float));
-        heightBuffer.SetData(heights);
+        if (changes.Count > 0)
+        {
+            foreach (WorldData subscriber in subscribers)
+            {
+                subscriber.UpdateBuffers(changes.ToArray(), updateShader);
+            }
+            changes = new List<Change>();
+        }
+    }
 
-        idBuffer = new ComputeBuffer(ids.Length, sizeof(int));
-        idBuffer.SetData(ids);
+    // If the given position is outside the bounds returns a position inside
+    private Vector2Int ValidatePosition(Vector2Int position)
+    {
+        int x = position.x;
+        int y = position.y;
 
-        countryColourBuffer = new ComputeBuffer(countries.Length, sizeof(float) * 3);
-        countryColourBuffer.SetData(countries.Select(country => country.Colour).ToArray());
+        x %= resolution * 2;
+        if (x < 0)
+        {
+            x = (resolution * 2) + x;
+        }
+
+        // 2D map sphere wrapping the y is funny
+        if (y < 0)
+        {
+            y = 0;
+
+            if (x < resolution)
+            {
+                x = resolution + x;
+            }
+            else
+            {
+                x -= resolution;
+            }
+        }
+        else if (y > resolution - 1)
+        {
+            y = resolution - 1;
+
+            if (x < resolution)
+            {
+                x = resolution + x;
+            }
+            else
+            {
+                x -= resolution;
+            }
+        }
+
+        return new Vector2Int(x, y);
+    }
+
+    private void OnApplicationQuit()
+    {
+        data.ReleaseBuffers();
+    }
+
+    private void OnValidate()
+    {
+        LoadCountries();
     }
 
     private void LoadCountries()
@@ -84,11 +146,23 @@ public class World : MonoBehaviour
         countries[0] = new Country(0, new Vector3(0, 0, 0));
         countries[1] = new Country(1, new Vector3(1, 0, 0));
     }
+}
 
-    private void OnApplicationQuit()
+public struct Change
+{
+    int index;
+    float height;
+    int owner;
+
+    public Change(int index, float height, int owner)
     {
-        heightBuffer.Release();
-        idBuffer.Release();
-        countryColourBuffer.Release();
+        this.index = index;
+        this.height = height;
+        this.owner = owner;
+    }
+
+    public static int SizeOf()
+    {
+        return 2 * sizeof(int) + sizeof(float);
     }
 }

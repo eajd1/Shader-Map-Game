@@ -28,6 +28,47 @@ float lowestPoint; // Lowest point on land
 float2 cameraPosition; // -1 to 1 on x and y
 float zoom;
 
+
+int2 GetCoord(int2 coord, int2 offset)
+// Calculates the coord with the offset
+{
+    int x = coord.x + offset.x;
+    int y = coord.y + offset.y;
+
+    x = x % (uint)(resolution * 2);
+    if (x < 0) {
+        x = (resolution * 2) + x;
+    }
+
+    // 2D map sphere wrapping the y is funny
+    if (y < 0) {
+        y = 0;
+
+        if (x < resolution) {
+            x = resolution + x;
+        }
+        else {
+            x = x - resolution;
+        }
+    }
+    else if (y > resolution - 1) {
+        y = resolution - 1;
+
+        if (x < resolution) {
+            x = resolution + x;
+        }
+        else {
+            x = x - resolution;
+        }
+    }
+
+    return int2(x, y);
+}
+
+int GetPositonInBuffer(int2 coord) {
+    return coord.x * resolution + coord.y;
+}
+
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -49,6 +90,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     int2 coord = int2((uv.x + 1) / 2 * resolution * 2, (uv.y + 1) / 2 * resolution);
 
     float height = heights[coord.x * resolution + coord.y];
+    int countryID = countryIds[coord.x * resolution + coord.y];
+    float3 countryColour = countryColours[countryID];
 
     float3 terrainColour;
     if (height < 0) // Is ocean
@@ -83,16 +126,48 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             break;
 
         case 2: // Country
-            int countryID = countryIds[coord.x * resolution + coord.y];
             if (countryID == 0)
             {
                 result[id.xy] = float4(terrainColour, 1.0);
                 return;
             }
 
-            float3 countryColour = countryColours[countryID];
-
             result[id.xy] = float4(0.5 * countryColour + 0.5 * terrainColour, 1.0);
+            break;
+
+        case 3: //Borders
+            if (countryID == 0)
+            {
+                result[id.xy] = float4(terrainColour, 1.0);
+                return;
+            }
+
+            int neighbourIds = 0;
+            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(1, 0)))] == countryID)
+            {
+                neighbourIds += 1;
+            }
+            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(0, 1)))] == countryID)
+            {
+                neighbourIds += 1;
+            }
+            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(-1, 0)))] == countryID)
+            {
+                neighbourIds += 1;
+            }
+            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(0, -1)))] == countryID)
+            {
+                neighbourIds += 1;
+            }
+
+            if (neighbourIds < 4)
+            {
+                result[id.xy] = float4(countryColour, 1.0);
+            }
+            else
+            {
+                result[id.xy] = float4(terrainColour, 1.0);
+            }
             break;
     }
 }

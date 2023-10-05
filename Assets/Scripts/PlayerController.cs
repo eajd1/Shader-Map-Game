@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading;
 
 [RequireComponent(typeof(CameraControls))]
+[RequireComponent(typeof(RenderWorld))]
 public class PlayerController : MonoBehaviour
 {
     // PlayerController deals with all player input except for camera movement
 
     private CameraControls controls;
+    private RenderWorld renderWorld;
     private MapMode mapMode;
     private Vector2Int cursorPosition;
+    private Country country;
 
     public Vector2Int CursorPosition { get { return cursorPosition; } }
 
@@ -20,7 +24,10 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         controls = GetComponent<CameraControls>();
+        renderWorld = GetComponent<RenderWorld>();
         mapMode = MapMode.Terrain;
+
+        country = World.Instance.GetCountry(1);
     }
 
     // Update is called once per frame
@@ -34,20 +41,37 @@ public class PlayerController : MonoBehaviour
         {
             mapMode = MapMode.Terrain;
         }
-
         if (Input.GetKeyDown(KeyCode.E))
         {
             mapMode = MapMode.Ocean;
         }
-
         if (Input.GetKeyDown(KeyCode.F))
         {
             mapMode = MapMode.Country;
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            mapMode = MapMode.Borders;
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             World.Instance.ToggleSimulation();
+        }
+
+        if (Input.GetButton(Inputs.LMB))
+        {
+            World.Instance.SetOwner(GetIndex(), country.ID);
+        }
+
+        if (Input.GetButton(Inputs.RMB))
+        {
+            World.Instance.SetOwner(GetIndex(), 0);
+        }
+
+        if (Input.GetButtonDown(Inputs.MMB))
+        {
+            // Flood fill
         }
     }
 
@@ -87,11 +111,17 @@ public class PlayerController : MonoBehaviour
 
         cursorPosition = new Vector2Int(x, y);
     }
+
+    private int GetIndex()
+    {
+        return cursorPosition.x * World.Instance.WorldResolution + cursorPosition.y;
+    }
 }
 
 public enum MapMode
 {
     Terrain,
     Ocean,
-    Country
+    Country,
+    Borders
 }
