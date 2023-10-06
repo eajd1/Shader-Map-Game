@@ -145,9 +145,9 @@ public class World : MonoBehaviour
     {
         // Temporary, a file will be used in the future
         countries = new Country[3];
-        countries[0] = new Country(0, new Vector3(0, 0, 0));
-        countries[1] = new Country(1, new Vector3(1, 0, 0));
-        countries[2] = new Country(2, new Vector3(0.2f, 0.33f, 0.8f));
+        countries[0] = new Country(0, new Vector3(0, 0, 0), "Null");
+        countries[1] = new Country(1, new Vector3(1, 0, 0), "Red");
+        countries[2] = new Country(2, new Vector3(0.2f, 0.33f, 0.8f), "Blue");
     }
 }
 

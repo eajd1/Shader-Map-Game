@@ -8,8 +8,6 @@ public class PlayerController : MonoBehaviour
 {
     // PlayerController deals with all player input except for camera movement
 
-    [SerializeField] private int selectedCountry;
-
     private CameraControls controls;
     private RenderWorld renderWorld;
     private MapMode mapMode;
@@ -20,6 +18,16 @@ public class PlayerController : MonoBehaviour
 
     public MapMode GetMapMode() => mapMode;
     public CameraControls GetControls() => controls;
+    public void SelectCountry(string countryName)
+    {
+        foreach (Country country in World.Instance.Countries)
+        {
+            if (country.Name.Equals(countryName))
+            {
+                this.country = country;
+            }
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -28,13 +36,12 @@ public class PlayerController : MonoBehaviour
         renderWorld = GetComponent<RenderWorld>();
         mapMode = MapMode.Terrain;
 
-        country = World.Instance.GetCountry(selectedCountry);
+        country = World.Instance.GetCountry(0);
     }
 
     // Update is called once per frame
     void Update()
     {
-        country = World.Instance.GetCountry(selectedCountry);
         UpdateCursorPosition();
 
         // Input Changes

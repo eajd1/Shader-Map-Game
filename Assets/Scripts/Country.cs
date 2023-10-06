@@ -10,9 +10,13 @@ public class Country
     private Vector3 colour; // 3 floats between 0 and 1
     public Vector3 Colour { get { return colour; } }
 
-    public Country(int id, Vector3 colour)
+    private string name;
+    public string Name { get { return name; } }
+
+    public Country(int id, Vector3 colour, string name)
     {
         this.id = id;
         this.colour = colour;
+        this.name = name;
     }
 }
