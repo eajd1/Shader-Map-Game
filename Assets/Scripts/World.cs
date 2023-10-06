@@ -143,11 +143,14 @@ public class World : MonoBehaviour
 
     private void LoadCountries()
     {
-        // Temporary, a file will be used in the future
-        countries = new Country[3];
-        countries[0] = new Country(0, new Vector3(0, 0, 0), "Null");
-        countries[1] = new Country(1, new Vector3(1, 0, 0), "Red");
-        countries[2] = new Country(2, new Vector3(0.2f, 0.33f, 0.8f), "Blue");
+        var countryFile = Resources.Load<TextAsset>("countries");
+        string[] lines = countryFile.text.Split("\n");
+        countries = new Country[lines.Length];
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string[] values = lines[i].Split(",");
+            countries[i] = new Country(i, new Vector3(float.Parse(values[1]), float.Parse(values[2]), float.Parse(values[3])), values[0]);
+        }
     }
 }
 
