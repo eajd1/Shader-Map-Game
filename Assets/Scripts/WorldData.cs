@@ -28,14 +28,14 @@ public class WorldData
     public void UpdateBuffers(Change[] changes, ComputeShader updateShader)
     {
         int kernelIndex = updateShader.FindKernel("CSMain");
-        updateShader.SetInt("numChanges", changes.Length);
-        updateShader.SetInt("resolution", resolution);
+        updateShader.SetInt("NumChanges", changes.Length);
+        updateShader.SetInt("Resolution", resolution);
 
         ComputeBuffer changeBuffer = new ComputeBuffer(changes.Length, Change.SizeOf());
         changeBuffer.SetData(changes);
-        updateShader.SetBuffer(kernelIndex, "changes", changeBuffer);
-        updateShader.SetBuffer(kernelIndex, "heights", heightBuffer);
-        updateShader.SetBuffer(kernelIndex, "ids", idBuffer);
+        updateShader.SetBuffer(kernelIndex, "Changes", changeBuffer);
+        updateShader.SetBuffer(kernelIndex, "Heights", heightBuffer);
+        updateShader.SetBuffer(kernelIndex, "Ids", idBuffer);
 
         updateShader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
         changeBuffer.Release();

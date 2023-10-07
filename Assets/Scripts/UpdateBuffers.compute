@@ -8,22 +8,22 @@ struct Change
     int owner;
 };
 
-int numChanges;
-RWStructuredBuffer<Change> changes;
+int NumChanges;
+RWStructuredBuffer<Change> Changes;
 
-int resolution;
-RWStructuredBuffer<float> heights;
-RWStructuredBuffer<int> ids;
+int Resolution;
+RWStructuredBuffer<float> Heights;
+RWStructuredBuffer<int> Ids;
 
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    for (int i = 0; i < numChanges; i++)
+    for (int i = 0; i < NumChanges; i++)
     {
-        if ((int)(id.x * resolution + id.y) == changes[i].index)
+        if ((int)(id.x * Resolution + id.y) == Changes[i].index)
         {
-            heights[changes[i].index] = changes[i].height;
-            ids[changes[i].index] = changes[i].owner;
+            Heights[Changes[i].index] = Changes[i].height;
+            Ids[Changes[i].index] = Changes[i].owner;
         }
     }
 }

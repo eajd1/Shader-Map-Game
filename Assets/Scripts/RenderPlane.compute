@@ -10,24 +10,23 @@ struct height
     float humitidy;
 };
 
-RWTexture2D<float4> result;
+RWTexture2D<float4> Result;
 
-RWStructuredBuffer<float> heights;
+RWStructuredBuffer<float> Heights;
 
-RWStructuredBuffer<int> countryIds;
-RWStructuredBuffer<float3> countryColours;
+RWStructuredBuffer<int> CountryIds;
+RWStructuredBuffer<float3> CountryColours;
 
-int mapMode; // How to display the map
+int MapMode; // How to display the map
 
-float resolution; // resolution of heights
-int2 screenResolution; // resolution of the screen
-float deepestPoint; // Deepest point in sea
-float highestPoint; // Highest point on land
-float lowestPoint; // Lowest point on land
-float countryOpacity; // Opacity of the countries in country map mode
+float Resolution; // resolution of heights
+float DeepestPoint; // Deepest point in sea
+float HighestPoint; // Highest point on land
+float LowestPoint; // Lowest point on land
+float CountryOpacity; // Opacity of the countries in country map mode
 
-float2 cameraPosition; // -1 to 1 on x and y
-float zoom;
+float2 CameraPosition; // -1 to 1 on x and y
+float Zoom;
 
 
 int2 GetCoord(int2 coord, int2 offset)
@@ -36,30 +35,30 @@ int2 GetCoord(int2 coord, int2 offset)
     int x = coord.x + offset.x;
     int y = coord.y + offset.y;
 
-    x = x % (uint)(resolution * 2);
+    x = x % (uint)(Resolution * 2);
     if (x < 0) {
-        x = (resolution * 2) + x;
+        x = (Resolution * 2) + x;
     }
 
     // 2D map sphere wrapping the y is funny
     if (y < 0) {
         y = 0;
 
-        if (x < resolution) {
-            x = resolution + x;
+        if (x < Resolution) {
+            x = Resolution + x;
         }
         else {
-            x = x - resolution;
+            x = x - Resolution;
         }
     }
-    else if (y > resolution - 1) {
-        y = resolution - 1;
+    else if (y > Resolution - 1) {
+        y = Resolution - 1;
 
-        if (x < resolution) {
-            x = resolution + x;
+        if (x < Resolution) {
+            x = Resolution + x;
         }
         else {
-            x = x - resolution;
+            x = x - Resolution;
         }
     }
 
@@ -67,15 +66,17 @@ int2 GetCoord(int2 coord, int2 offset)
 }
 
 int GetPositonInBuffer(int2 coord) {
-    return coord.x * resolution + coord.y;
+    return coord.x * Resolution + coord.y;
 }
 
 [numthreads(1,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+    uint2 screenResolution = uint2(0, 0);
+    Result.GetDimensions(screenResolution.x, screenResolution.y);
     float2 uv = (id.xy / (float2)screenResolution) * 2 - 1;
-    uv *= zoom;
-    uv += cameraPosition;
+    uv *= Zoom;
+    uv += CameraPosition;
 
     if (uv.x > 1) {
         uv.x = -1 + (uv.x - 1);
@@ -84,20 +85,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         uv.x = 1 + (uv.x + 1);
     }
     if (uv.y > 1 || uv.y < -1) {
-        result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+        Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
         return;
     }
 
-    int2 coord = int2((uv.x + 1) / 2 * resolution * 2, (uv.y + 1) / 2 * resolution);
+    int2 coord = int2((uv.x + 1) / 2 * Resolution * 2, (uv.y + 1) / 2 * Resolution);
 
-    float height = heights[coord.x * resolution + coord.y];
-    int countryID = countryIds[coord.x * resolution + coord.y];
-    float3 countryColour = countryColours[countryID];
+    float height = Heights[GetPositonInBuffer(coord)];
+    int countryID = CountryIds[GetPositonInBuffer(coord)];
+    float3 countryColour = CountryColours[countryID];
 
     float3 terrainColour;
     if (height < 0) // Is ocean
     {
-        terrainColour = float3(0.0, 0.0, (1 - (height / deepestPoint)));
+        terrainColour = float3(0.0, 0.0, (1 - (height / DeepestPoint)));
     }
     else if (height == 0)
     {
@@ -106,68 +107,68 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
     else
     {
-        terrainColour = float3(0.0, sqrt(height / highestPoint) * 0.8 + 0.2, 0.0);
+        terrainColour = float3(0.0, sqrt(height / HighestPoint) * 0.8 + 0.2, 0.0);
     }
 
-    switch(mapMode)
+    switch(MapMode)
     {
         case 0: // Terrain
-            result[id.xy] = float4(terrainColour, 1.0);
+            Result[id.xy] = float4(terrainColour, 1.0);
             break;
 
         case 1: // Ocean
             if (height < 0)
             {
-                result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+                Result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
             }
             else
             {
-                result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+                Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
             }
             break;
 
         case 2: // Country
             if (countryID == 0)
             {
-                result[id.xy] = float4(terrainColour, 1.0);
+                Result[id.xy] = float4(terrainColour, 1.0);
                 return;
             }
 
-            result[id.xy] = float4((1 - countryOpacity) * countryColour + countryOpacity * terrainColour, 1.0);
+            Result[id.xy] = float4((1 - CountryOpacity) * countryColour + CountryOpacity * terrainColour, 1.0);
             break;
 
         case 3: //Borders
             if (countryID == 0)
             {
-                result[id.xy] = float4(terrainColour, 1.0);
+                Result[id.xy] = float4(terrainColour, 1.0);
                 return;
             }
 
             int neighbourIds = 0;
-            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(1, 0)))] == countryID)
+            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(1, 0)))] == countryID)
             {
                 neighbourIds += 1;
             }
-            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(0, 1)))] == countryID)
+            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(0, 1)))] == countryID)
             {
                 neighbourIds += 1;
             }
-            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(-1, 0)))] == countryID)
+            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(-1, 0)))] == countryID)
             {
                 neighbourIds += 1;
             }
-            if (countryIds[GetPositonInBuffer(GetCoord(coord, int2(0, -1)))] == countryID)
+            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(0, -1)))] == countryID)
             {
                 neighbourIds += 1;
             }
 
             if (neighbourIds < 4)
             {
-                result[id.xy] = float4(countryColour, 1.0);
+                Result[id.xy] = float4(countryColour, 1.0);
             }
             else
             {
-                result[id.xy] = float4(terrainColour, 1.0);
+                Result[id.xy] = float4(terrainColour, 1.0);
             }
             break;
     }

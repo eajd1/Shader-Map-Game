@@ -136,11 +136,6 @@ public class World : MonoBehaviour
         data.ReleaseBuffers();
     }
 
-    private void OnValidate()
-    {
-        LoadCountries();
-    }
-
     private void LoadCountries()
     {
         var countryFile = Resources.Load<TextAsset>("countries");

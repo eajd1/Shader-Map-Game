@@ -27,8 +27,8 @@ public class RenderWorld : MonoBehaviour
 
         // Initialise renderShader
         int kernelIndex = renderShader.FindKernel("CSMain");
-        renderShader.SetTexture(kernelIndex, "result", renderTexture);
-        renderShader.SetInts("screenResolution", new int[] { screenResolution.width, screenResolution.height });
+        renderShader.SetTexture(kernelIndex, "Result", renderTexture);
+        renderShader.SetInts("ScreenResolution", new int[] { screenResolution.width, screenResolution.height });
 
         StartCoroutine(AfterStart());
     }
@@ -39,23 +39,23 @@ public class RenderWorld : MonoBehaviour
         data = new WorldData(World.Instance.Heights, World.Instance.IDs, World.Instance.Countries);
         World.Instance.Subscribe(data);
         int kernelIndex = renderShader.FindKernel("CSMain");
-        renderShader.SetBuffer(kernelIndex, "heights", data.heightBuffer);
-        renderShader.SetBuffer(kernelIndex, "countryIds", data.idBuffer);
-        renderShader.SetBuffer(kernelIndex, "countryColours", data.countryColourBuffer);
+        renderShader.SetBuffer(kernelIndex, "Heights", data.heightBuffer);
+        renderShader.SetBuffer(kernelIndex, "CountryIds", data.idBuffer);
+        renderShader.SetBuffer(kernelIndex, "CountryColours", data.countryColourBuffer);
     }
 
     // Update is called once per frame
     void Update()
     {
-        renderShader.SetInt("mapMode", (int)playerController.GetMapMode());
-        renderShader.SetFloat("resolution", World.Instance.WorldResolution);
-        renderShader.SetFloat("deepestPoint", World.Instance.MaxDepth);
-        renderShader.SetFloat("highestPoint", World.Instance.MaxHeight);
-        renderShader.SetFloat("lowestPoint", 0);
-        renderShader.SetFloat("countryOpacity", countryOpacity);
+        renderShader.SetInt("MapMode", (int)playerController.GetMapMode());
+        renderShader.SetFloat("Resolution", World.Instance.WorldResolution);
+        renderShader.SetFloat("DeepestPoint", World.Instance.MaxDepth);
+        renderShader.SetFloat("HighestPoint", World.Instance.MaxHeight);
+        renderShader.SetFloat("LowestPoint", 0);
+        renderShader.SetFloat("CountryOpacity", countryOpacity);
         Vector2 cameraPos = playerController.GetControls().GetUV();
-        renderShader.SetFloats("cameraPosition", new float[] { cameraPos.x, cameraPos.y });
-        renderShader.SetFloat("zoom", playerController.GetControls().GetZoom());
+        renderShader.SetFloats("CameraPosition", new float[] { cameraPos.x, cameraPos.y });
+        renderShader.SetFloat("Zoom", playerController.GetControls().GetZoom());
 
         int kernelIndex = renderShader.FindKernel("CSMain");
         if (BuffersExist())
