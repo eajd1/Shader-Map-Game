@@ -19,4 +19,9 @@ public class Country
         this.colour = colour;
         this.name = name;
     }
+
+    public override string ToString()
+    {
+        return $"id: {id}, colour: {colour}, name: {name}";
+    }
 }

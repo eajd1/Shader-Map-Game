@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 public class World : MonoBehaviour
 {
@@ -80,6 +81,7 @@ public class World : MonoBehaviour
     {
         if (changes.Count > 0)
         {
+            bufferData.UpdateBuffers(changes.ToArray(), updateShader);
             foreach (WorldBufferData subscriber in subscribers)
             {
                 subscriber.UpdateBuffers(changes.ToArray(), updateShader);
@@ -148,9 +150,39 @@ public class World : MonoBehaviour
         }
     }
 
-    public void SaveWorld()
+    public void SaveWorld(string name)
     {
+        string path = $"{Application.dataPath}/saves";
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
 
+        path = $"{path}/{name}.sav";
+        FileStream file = File.Create(path);
+        BinaryWriter writer = new BinaryWriter(file);
+
+        writer.Write(resolution);
+        writer.Write(maxHeight);
+        writer.Write(maxDepth);
+
+        foreach (float height in heights)
+        {
+            writer.Write(height);
+        }
+
+        foreach (int owner in ids)
+        {
+            writer.Write(owner);
+        }
+
+        foreach (Country country in countries)
+        {
+            writer.Write(country.ToString());
+        }
+
+        writer.Close();
+        file.Close();
     }
 }
 
