@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class WorldData
+public class WorldBufferData
 {
     // Deal with holding the ComputeBuffers and updating them with a ComputeShader
 
@@ -13,7 +13,7 @@ public class WorldData
 
     public int resolution = World.Instance.WorldResolution;
 
-    public WorldData(float[] heights, int[] ids, Country[] countries)
+    public WorldBufferData(float[] heights, int[] ids, Country[] countries)
     {
         heightBuffer = new ComputeBuffer(2 * resolution * resolution, sizeof(float));
         idBuffer = new ComputeBuffer(2 * resolution * resolution, sizeof(int));
@@ -41,7 +41,7 @@ public class WorldData
         changeBuffer.Release();
     }
 
-    ~WorldData()
+    ~WorldBufferData()
     {
         heightBuffer.Release();
         idBuffer.Release();

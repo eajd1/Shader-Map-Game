@@ -13,7 +13,7 @@ public class RenderWorld : MonoBehaviour
     private Resolution screenResolution;
     private RenderTexture renderTexture;
     private PlayerController playerController;
-    private WorldData data;
+    private WorldBufferData bufferData;
 
 
     // Start is called before the first frame update
@@ -36,12 +36,12 @@ public class RenderWorld : MonoBehaviour
     private IEnumerator AfterStart()
     {
         yield return new WaitForEndOfFrame();
-        data = new WorldData(World.Instance.Heights, World.Instance.IDs, World.Instance.Countries);
-        World.Instance.Subscribe(data);
+        bufferData = new WorldBufferData(World.Instance.Heights, World.Instance.IDs, World.Instance.Countries);
+        World.Instance.Subscribe(bufferData);
         int kernelIndex = renderShader.FindKernel("CSMain");
-        renderShader.SetBuffer(kernelIndex, "Heights", data.heightBuffer);
-        renderShader.SetBuffer(kernelIndex, "CountryIds", data.idBuffer);
-        renderShader.SetBuffer(kernelIndex, "CountryColours", data.countryColourBuffer);
+        renderShader.SetBuffer(kernelIndex, "Heights", bufferData.heightBuffer);
+        renderShader.SetBuffer(kernelIndex, "CountryIds", bufferData.idBuffer);
+        renderShader.SetBuffer(kernelIndex, "CountryColours", bufferData.countryColourBuffer);
     }
 
     // Update is called once per frame
@@ -71,14 +71,14 @@ public class RenderWorld : MonoBehaviour
 
     private bool BuffersExist()
     {
-        return data != null &&
-            data.heightBuffer != null &&
-            data.idBuffer != null &&
-            data.countryColourBuffer != null;
+        return bufferData != null &&
+            bufferData.heightBuffer != null &&
+            bufferData.idBuffer != null &&
+            bufferData.countryColourBuffer != null;
     }
 
     private void OnApplicationQuit()
     {
-        data.ReleaseBuffers();
+        bufferData.ReleaseBuffers();
     }
 }

@@ -24,10 +24,10 @@ public class World : MonoBehaviour
 
     private float[] heights; // heights of each point in the world
     private int[] ids; // id of the owner of each point in the world
-    private WorldData data;
+    private WorldBufferData bufferData;
     private Country[] countries; // all the countries in the world
 
-    private List<WorldData> subscribers;
+    private List<WorldBufferData> subscribers;
     private List<Change> changes;
     private bool simulate;
 
@@ -40,7 +40,7 @@ public class World : MonoBehaviour
 
     public void ToggleSimulation() => simulate = !simulate;
     public Country GetCountry(int index) => countries[index];
-    public void Subscribe(WorldData subscriber) => subscribers.Add(subscriber);
+    public void Subscribe(WorldBufferData subscriber) => subscribers.Add(subscriber);
     public void GetChange(Change change) { lock (changes) { changes.Add(change); } }
     public void SetOwner(int index, int owner)
     {
@@ -60,14 +60,14 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        subscribers = new List<WorldData>();
+        subscribers = new List<WorldBufferData>();
         changes = new List<Change>();
 
         heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
         ids = new int[2 * resolution * resolution];
         LoadCountries();
 
-        data = new WorldData(heights, ids, countries);
+        bufferData = new WorldBufferData(heights, ids, countries);
     }
 
     // Update is called once per frame
@@ -80,7 +80,7 @@ public class World : MonoBehaviour
     {
         if (changes.Count > 0)
         {
-            foreach (WorldData subscriber in subscribers)
+            foreach (WorldBufferData subscriber in subscribers)
             {
                 subscriber.UpdateBuffers(changes.ToArray(), updateShader);
             }
@@ -133,7 +133,7 @@ public class World : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        data.ReleaseBuffers();
+        bufferData.ReleaseBuffers();
     }
 
     private void LoadCountries()
@@ -146,6 +146,11 @@ public class World : MonoBehaviour
             string[] values = lines[i].Split(",");
             countries[i] = new Country(i, new Vector3(float.Parse(values[1]), float.Parse(values[2]), float.Parse(values[3])), values[0]);
         }
+    }
+
+    public void SaveWorld()
+    {
+
     }
 }
 
