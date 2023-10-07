@@ -9,12 +9,26 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private TMP_Dropdown dropdown;
+    [SerializeField] private List<RectTransform> uiColliders;
 
     private PlayerController player;
 
     public void SelectCountry(string unused)
     {
         player.SelectCountry(dropdown.options.ToArray()[dropdown.value].text);
+    }
+
+    public bool CursorInCollider()
+    {
+        foreach (RectTransform rectTransform in uiColliders)
+        {
+            if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Start is called before the first frame update
