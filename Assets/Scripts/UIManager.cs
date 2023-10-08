@@ -9,7 +9,7 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private TMP_Dropdown dropdown;
-    [SerializeField] private List<RectTransform> uiColliders;
+    [SerializeField] private Transform canvas;
 
     private PlayerController player;
 
@@ -20,7 +20,9 @@ public class UIManager : MonoBehaviour
 
     public bool CursorInCollider()
     {
-        foreach (RectTransform rectTransform in uiColliders)
+        List<RectTransform> rects = new List<RectTransform>();
+        rects = GetRects(canvas, rects);
+        foreach (RectTransform rectTransform in rects)
         {
             if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)))
             {
@@ -29,6 +31,20 @@ public class UIManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    private List<RectTransform> GetRects(Transform parent, List<RectTransform> rects)
+    {
+        foreach (Transform transform in parent)
+        {
+            foreach (RectTransform rectTransform in transform.GetComponentsInChildren<RectTransform>())
+            {
+                if (rectTransform != null)
+                    rects.Add(rectTransform);
+            }
+            GetRects(transform, rects);
+        }
+        return rects;
     }
 
     // Start is called before the first frame update
