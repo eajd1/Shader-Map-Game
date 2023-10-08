@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Threading;
 
 public class World : MonoBehaviour
 {
@@ -47,13 +48,68 @@ public class World : MonoBehaviour
     {
         if (!(ids[index] == owner))
         {
-            ids[index] = owner;
-            changes.Add(new Change(index, heights[index], owner));
+            lock (ids)
+                ids[index] = owner;
+            lock (changes)
+                changes.Add(new Change(index, heights[index], owner));
         }
     }
-    public void SetOwnerFill(int startX, int startY, int owner)
+    public void SetOwnerFill(Vector2Int start, int owner)
     {
+        Thread thread = new Thread(new ThreadStart(() =>
+        {
+            if (heights[start.x * resolution + start.y] < 0)
+                return;
 
+            Queue<Vector2Int> queue = new Queue<Vector2Int>();
+            List<int> visited = new List<int>();
+            queue.Enqueue(start);
+            while (queue.Count > 0)
+            {
+                Vector2Int pos = queue.Dequeue();
+                int index = pos.x * resolution + pos.y;
+                lock (ids)
+                    ids[index] = owner;
+                lock (changes)
+                {
+                    if (changes.Count > 1000) // dont give the gpu to much work at once
+                    {
+                        Thread.Sleep(50);
+                    }
+                    changes.Add(new Change(index, heights[index], owner));
+                }
+
+                Vector2Int newPos = ValidatePosition(new Vector2Int(pos.x + 1, pos.y));
+                index = newPos.x * resolution + newPos.y;
+                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                {
+                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
+                    visited.Add(index);
+                }
+                newPos = ValidatePosition(new Vector2Int(pos.x - 1, pos.y));
+                index = newPos.x * resolution + newPos.y;
+                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                {
+                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
+                    visited.Add(index);
+                }
+                newPos = ValidatePosition(new Vector2Int(pos.x, pos.y + 1));
+                index = newPos.x * resolution + newPos.y;
+                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                {
+                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
+                    visited.Add(index);
+                }
+                newPos = ValidatePosition(new Vector2Int(pos.x, pos.y - 1));
+                index = newPos.x * resolution + newPos.y;
+                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                {
+                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
+                    visited.Add(index);
+                }
+            }
+        }));
+        thread.Start();
     }
     public float GetHeight(Vector2Int position) => heights[position.x * resolution + position.y];
     public Country GetOwner(Vector2Int position) => countries[ids[position.x * resolution + position.y]];
@@ -79,14 +135,18 @@ public class World : MonoBehaviour
 
     private void SendChanges()
     {
-        if (changes.Count > 0)
+        lock (changes)
         {
-            bufferData.UpdateBuffers(changes.ToArray(), updateShader);
-            foreach (WorldBufferData subscriber in subscribers)
+            if (changes.Count > 0)
             {
-                subscriber.UpdateBuffers(changes.ToArray(), updateShader);
+                Change[] array = changes.ToArray();
+                bufferData.UpdateBuffers(array, updateShader);
+                foreach (WorldBufferData subscriber in subscribers)
+                {
+                    subscriber.UpdateBuffers(array, updateShader);
+                }
+                changes = new List<Change>();
             }
-            changes = new List<Change>();
         }
     }
 

@@ -83,7 +83,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonDown(Inputs.MMB))
         {
-            // Flood fill
+            World.Instance.SetOwnerFill(cursorPosition, country.ID);
         }
     }
 
