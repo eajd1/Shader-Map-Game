@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         foreach (Country country in World.Instance.Countries)
         {
-            if (country.Name.Equals(countryName))
+            if (country.name.Equals(countryName))
             {
                 this.country = country;
             }

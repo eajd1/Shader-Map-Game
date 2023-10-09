@@ -53,7 +53,7 @@ public class UIManager : MonoBehaviour
         player = GetComponent<PlayerController>();
 
         dropdown.ClearOptions();
-        dropdown.AddOptions(World.Instance.Countries.Select(country => new TMP_Dropdown.OptionData(country.Name)).ToList());
+        dropdown.AddOptions(World.Instance.Countries.Select(country => new TMP_Dropdown.OptionData(country.name)).ToList());
     }
 
     // Update is called once per frame
@@ -61,5 +61,10 @@ public class UIManager : MonoBehaviour
     {
         Vector2Int pos = player.CursorPosition;
         text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {World.Instance.GetHeight(pos)}";
+
+        foreach (Country country in World.Instance.Countries)
+        {
+            // Draw country name
+        }
     }
 }

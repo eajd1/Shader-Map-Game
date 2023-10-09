@@ -43,7 +43,10 @@ public class World : MonoBehaviour
     public void ToggleSimulation() => simulate = !simulate;
     public Country GetCountry(int index) => countries[index];
     public void Subscribe(WorldBufferData subscriber) => subscribers.Add(subscriber);
-    public void GetChange(Change change) { lock (changes) { changes.Add(change); } }
+    public void AddChange(Change change) { lock (changes) { changes.Add(change); } }
+    public float GetHeight(Vector2Int position) => heights[position.x * resolution + position.y];
+    public Country GetOwner(Vector2Int position) => countries[ids[position.x * resolution + position.y]];
+
     public void SetOwner(int index, int owner)
     {
         if (!(ids[index] == owner))
@@ -54,6 +57,7 @@ public class World : MonoBehaviour
                 changes.Add(new Change(index, heights[index], owner));
         }
     }
+
     public void SetOwnerFill(Vector2Int start, int owner)
     {
         Thread thread = new Thread(new ThreadStart(() =>
@@ -111,43 +115,40 @@ public class World : MonoBehaviour
         }));
         thread.Start();
     }
-    public float GetHeight(Vector2Int position) => heights[position.x * resolution + position.y];
-    public Country GetOwner(Vector2Int position) => countries[ids[position.x * resolution + position.y]];
 
-    // Start is called before the first frame update
-    void Start()
+    public void SaveWorld(string name)
     {
-        subscribers = new List<WorldBufferData>();
-        changes = new List<Change>();
-
-        heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
-        ids = new int[2 * resolution * resolution];
-        LoadCountries();
-
-        bufferData = new WorldBufferData(heights, ids, countries);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        SendChanges();
-    }
-
-    private void SendChanges()
-    {
-        lock (changes)
+        string path = $"{Application.dataPath}/saves";
+        if (!Directory.Exists(path))
         {
-            if (changes.Count > 0)
-            {
-                Change[] array = changes.ToArray();
-                bufferData.UpdateBuffers(array, updateShader);
-                foreach (WorldBufferData subscriber in subscribers)
-                {
-                    subscriber.UpdateBuffers(array, updateShader);
-                }
-                changes = new List<Change>();
-            }
+            Directory.CreateDirectory(path);
         }
+
+        path = $"{path}/{name}.sav";
+        FileStream file = File.Create(path);
+        BinaryWriter writer = new BinaryWriter(file);
+
+        writer.Write(resolution);
+        writer.Write(maxHeight);
+        writer.Write(maxDepth);
+
+        foreach (float height in heights)
+        {
+            writer.Write(height);
+        }
+
+        foreach (int owner in ids)
+        {
+            writer.Write(owner);
+        }
+
+        foreach (Country country in countries)
+        {
+            writer.Write(country.ToString());
+        }
+
+        writer.Close();
+        file.Close();
     }
 
     // If the given position is outside the bounds returns a position inside
@@ -193,6 +194,45 @@ public class World : MonoBehaviour
         return new Vector2Int(x, y);
     }
 
+    // Start is called before the first frame update
+    void Start()
+    {
+        subscribers = new List<WorldBufferData>();
+        changes = new List<Change>();
+
+        heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
+        ids = new int[2 * resolution * resolution];
+        LoadCountries();
+
+        bufferData = new WorldBufferData(heights, ids, countries);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        SendChanges();
+    }
+
+    private void SendChanges()
+    {
+        lock (changes)
+        {
+            if (changes.Count > 0)
+            {
+                for (int i = 1; i < countries.Length; i++)
+                    CalculateCountryExtents(i);
+
+                Change[] array = changes.ToArray();
+                bufferData.UpdateBuffers(array, updateShader);
+                foreach (WorldBufferData subscriber in subscribers)
+                {
+                    subscriber.UpdateBuffers(array, updateShader);
+                }
+                changes = new List<Change>();
+            }
+        }
+    }
+
     private void OnApplicationQuit()
     {
         bufferData.ReleaseBuffers();
@@ -210,39 +250,31 @@ public class World : MonoBehaviour
         }
     }
 
-    public void SaveWorld(string name)
+    private void CalculateCountryExtents(int countryID)
     {
-        string path = $"{Application.dataPath}/saves";
-        if (!Directory.Exists(path))
+        Vector2Int topLeft = new Vector2Int(int.MaxValue, 0);
+        Vector2Int bottomRight = new Vector2Int(0, int.MaxValue);
+        for (int i = 0; i < ids.Length; i++)
         {
-            Directory.CreateDirectory(path);
+            if (ids[i] == countryID)
+            {
+                int x = i / resolution;
+                int y = i % resolution;
+
+                if (x < topLeft.x)
+                    topLeft.x = x;
+                if (x > bottomRight.x)
+                    bottomRight.x = x;
+                if (y > topLeft.y)
+                    topLeft.y = y;
+                if (y < bottomRight.y)
+                    bottomRight.y = y;
+            }
         }
-
-        path = $"{path}/{name}.sav";
-        FileStream file = File.Create(path);
-        BinaryWriter writer = new BinaryWriter(file);
-
-        writer.Write(resolution);
-        writer.Write(maxHeight);
-        writer.Write(maxDepth);
-
-        foreach (float height in heights)
-        {
-            writer.Write(height);
-        }
-
-        foreach (int owner in ids)
-        {
-            writer.Write(owner);
-        }
-
-        foreach (Country country in countries)
-        {
-            writer.Write(country.ToString());
-        }
-
-        writer.Close();
-        file.Close();
+        topLeft = ValidatePosition(topLeft);
+        bottomRight = ValidatePosition(bottomRight);
+        countries[countryID].topLeft = topLeft.x * resolution + topLeft.y;
+        countries[countryID].bottomRight = bottomRight.x * resolution + bottomRight.y;
     }
 }
 

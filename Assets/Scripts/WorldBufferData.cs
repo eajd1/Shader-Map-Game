@@ -21,7 +21,7 @@ public class WorldBufferData
 
         heightBuffer.SetData(heights);
         idBuffer.SetData(ids);
-        countryColourBuffer.SetData(countries.Select(country => country.Colour).ToArray());
+        countryColourBuffer.SetData(countries.Select(country => country.colour).ToArray());
     }
 
     // an array of changes for the update shader to update
