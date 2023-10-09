@@ -30,7 +30,7 @@ public class PlaneCameraControls : CameraControls
         float vertical = Input.GetAxis(Inputs.Vertical) * movementMultiplier * Time.deltaTime;
 
         // Zoom
-        zoom += -Input.GetAxis(Inputs.Scroll) * zoomMultiplier * Time.deltaTime * zoomCurve.Evaluate(zoom);
+        zoom += -Input.GetAxis(Inputs.Scroll) * zoomMultiplier * zoomCurve.Evaluate(zoom) * Mathf.Clamp(Time.deltaTime, 0, 0.016f);
 
         if (zoom < maxZoom)
         {

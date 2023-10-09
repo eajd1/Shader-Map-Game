@@ -220,7 +220,7 @@ public class World : MonoBehaviour
             if (changes.Count > 0)
             {
                 for (int i = 1; i < countries.Length; i++)
-                    CalculateCountryExtents(i);
+                    CalculateCountryExtents(i); // In future do this only when border changes are confirmed
 
                 Change[] array = changes.ToArray();
                 bufferData.UpdateBuffers(array, updateShader);

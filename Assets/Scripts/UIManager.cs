@@ -62,6 +62,7 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < countryNames.Length; i++)
         {
             countryNames[i] = Instantiate(textPrefab).GetComponent<RectTransform>();
+            countryNames[i].gameObject.layer = ignoreLayer.value;
             countryNames[i].SetParent(countryNamesParent);
         }
     }
