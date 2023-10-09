@@ -9,7 +9,6 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private TMP_Dropdown dropdown;
-    [SerializeField] private LayerMask ignoreLayer;
     [SerializeField] private Transform canvas;
     [SerializeField] private Transform countryNamesParent;
     [SerializeField] private GameObject textPrefab;
@@ -28,7 +27,7 @@ public class UIManager : MonoBehaviour
         rects = GetRects(canvas, rects);
         foreach (RectTransform rectTransform in rects)
         {
-            if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)) && ignoreLayer.value != rectTransform.gameObject.layer)
+            if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)) && LayerMask.NameToLayer("Ignore Cursor") != rectTransform.gameObject.layer)
             {
                 return true;
             }
@@ -62,7 +61,7 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < countryNames.Length; i++)
         {
             countryNames[i] = Instantiate(textPrefab).GetComponent<RectTransform>();
-            countryNames[i].gameObject.layer = ignoreLayer.value;
+            countryNames[i].gameObject.layer = LayerMask.NameToLayer("Ignore Cursor");
             countryNames[i].SetParent(countryNamesParent);
         }
     }

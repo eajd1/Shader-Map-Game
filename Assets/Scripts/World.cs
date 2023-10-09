@@ -220,7 +220,7 @@ public class World : MonoBehaviour
             if (changes.Count > 0)
             {
                 for (int i = 1; i < countries.Length; i++)
-                    CalculateCountryExtents(i); // In future do this only when border changes are confirmed
+                    CalculateCountryCentre(i); // In future do this only when border changes are confirmed
 
                 Change[] array = changes.ToArray();
                 bufferData.UpdateBuffers(array, updateShader);
@@ -250,7 +250,7 @@ public class World : MonoBehaviour
         }
     }
 
-    private void CalculateCountryExtents(int countryID)
+    private void CalculateCountryCentre(int countryID)
     {
         Vector2 centre = new Vector2(0, 0);
         int count = 0;
