@@ -75,10 +75,8 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < countryNames.Length; i++)
         {
             Country country = World.Instance.Countries[i + 1];
-            Vector2Int topRight = new Vector2Int(country.topRight / World.Instance.WorldResolution, country.topRight % World.Instance.WorldResolution);
-            Vector2Int bottomLeft = new Vector2Int(country.bottomLeft / World.Instance.WorldResolution, country.bottomLeft % World.Instance.WorldResolution);
 
-            Vector2 midpoint = new Vector2((topRight.x + bottomLeft.x) / 2f, (topRight.y + bottomLeft.y) / 2f);
+            Vector2 midpoint = country.namePoint;
             midpoint.x /= World.Instance.WorldResolution * 2;
             midpoint.y /= World.Instance.WorldResolution;
             midpoint.x = midpoint.x - 0.5f;

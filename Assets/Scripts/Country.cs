@@ -8,8 +8,7 @@ public class Country
     public int ID { get { return id; } }
     public Vector3 colour; // 3 floats between 0 and 1
     public string name;
-    public int topRight;
-    public int bottomLeft;
+    public Vector2 namePoint = new Vector2(-999, -999);
 
     public Country(int id, Vector3 colour, string name)
     {

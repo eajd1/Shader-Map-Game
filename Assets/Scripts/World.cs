@@ -252,8 +252,8 @@ public class World : MonoBehaviour
 
     private void CalculateCountryExtents(int countryID)
     {
-        Vector2Int topRight = new Vector2Int(0, 0);
-        Vector2Int bottomLeft = new Vector2Int(int.MaxValue, int.MaxValue);
+        Vector2 centre = new Vector2(0, 0);
+        int count = 0;
         for (int i = 0; i < ids.Length; i++)
         {
             if (ids[i] == countryID)
@@ -261,20 +261,14 @@ public class World : MonoBehaviour
                 int x = i / resolution;
                 int y = i % resolution;
 
-                if (x > topRight.x)
-                    topRight.x = x;
-                if (x < bottomLeft.x)
-                    bottomLeft.x = x;
-                if (y > topRight.y)
-                    topRight.y = y;
-                if (y < bottomLeft.y)
-                    bottomLeft.y = y;
+                centre += new Vector2(x, y);
+                count++;
             }
         }
-        topRight = ValidatePosition(topRight);
-        bottomLeft = ValidatePosition(bottomLeft);
-        countries[countryID].topRight = topRight.x * resolution + topRight.y;
-        countries[countryID].bottomLeft = bottomLeft.x * resolution + bottomLeft.y;
+        if (count != 0)
+            countries[countryID].namePoint = centre / count;
+        else
+            countries[countryID].namePoint = new Vector2(-999, -999);
     }
 }
 
