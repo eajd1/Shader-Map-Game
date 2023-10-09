@@ -8,8 +8,8 @@ public class Country
     public int ID { get { return id; } }
     public Vector3 colour; // 3 floats between 0 and 1
     public string name;
-    public int topLeft;
-    public int bottomRight;
+    public int topRight;
+    public int bottomLeft;
 
     public Country(int id, Vector3 colour, string name)
     {

@@ -252,8 +252,8 @@ public class World : MonoBehaviour
 
     private void CalculateCountryExtents(int countryID)
     {
-        Vector2Int topLeft = new Vector2Int(int.MaxValue, 0);
-        Vector2Int bottomRight = new Vector2Int(0, int.MaxValue);
+        Vector2Int topRight = new Vector2Int(0, 0);
+        Vector2Int bottomLeft = new Vector2Int(int.MaxValue, int.MaxValue);
         for (int i = 0; i < ids.Length; i++)
         {
             if (ids[i] == countryID)
@@ -261,20 +261,20 @@ public class World : MonoBehaviour
                 int x = i / resolution;
                 int y = i % resolution;
 
-                if (x < topLeft.x)
-                    topLeft.x = x;
-                if (x > bottomRight.x)
-                    bottomRight.x = x;
-                if (y > topLeft.y)
-                    topLeft.y = y;
-                if (y < bottomRight.y)
-                    bottomRight.y = y;
+                if (x > topRight.x)
+                    topRight.x = x;
+                if (x < bottomLeft.x)
+                    bottomLeft.x = x;
+                if (y > topRight.y)
+                    topRight.y = y;
+                if (y < bottomLeft.y)
+                    bottomLeft.y = y;
             }
         }
-        topLeft = ValidatePosition(topLeft);
-        bottomRight = ValidatePosition(bottomRight);
-        countries[countryID].topLeft = topLeft.x * resolution + topLeft.y;
-        countries[countryID].bottomRight = bottomRight.x * resolution + bottomRight.y;
+        topRight = ValidatePosition(topRight);
+        bottomLeft = ValidatePosition(bottomLeft);
+        countries[countryID].topRight = topRight.x * resolution + topRight.y;
+        countries[countryID].bottomLeft = bottomLeft.x * resolution + bottomLeft.y;
     }
 }
 
