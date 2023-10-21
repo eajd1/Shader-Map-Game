@@ -4,7 +4,7 @@
 struct Change
 {
     int index;
-    float height;
+    float deltaHeight;
     int owner;
 };
 
@@ -22,7 +22,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     {
         if ((int)(id.x * Resolution + id.y) == Changes[i].index)
         {
-            Heights[Changes[i].index] = Changes[i].height;
+            Heights[Changes[i].index] += Changes[i].deltaHeight;
             Ids[Changes[i].index] = Changes[i].owner;
         }
     }

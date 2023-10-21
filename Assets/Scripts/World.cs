@@ -54,7 +54,7 @@ public class World : MonoBehaviour
             lock (ids)
                 ids[index] = owner;
             lock (changes)
-                changes.Add(new Change(index, heights[index], owner));
+                changes.Add(new Change(index, 0, owner));
         }
     }
 
@@ -76,11 +76,7 @@ public class World : MonoBehaviour
                     ids[index] = owner;
                 lock (changes)
                 {
-                    if (changes.Count > 1000) // dont give the gpu to much work at once
-                    {
-                        Thread.Sleep(50);
-                    }
-                    changes.Add(new Change(index, heights[index], owner));
+                    changes.Add(new Change(index, 0, owner));
                 }
 
                 Vector2Int newPos = ValidatePosition(new Vector2Int(pos.x + 1, pos.y));
@@ -219,16 +215,16 @@ public class World : MonoBehaviour
         {
             if (changes.Count > 0)
             {
-                for (int i = 1; i < countries.Length; i++)
-                    CalculateCountryCentre(i); // In future do this only when border changes are confirmed
+                //for (int i = 1; i < countries.Length; i++)
+                //    CalculateCountryCentre(i); // In future do this only when border changes are confirmed
 
-                Change[] array = changes.ToArray();
+                Change[] array = ExtractRange(50).ToArray();
                 bufferData.UpdateBuffers(array, updateShader);
                 foreach (WorldBufferData subscriber in subscribers)
                 {
                     subscriber.UpdateBuffers(array, updateShader);
                 }
-                changes = new List<Change>();
+                //changes = new List<Change>();
             }
         }
     }
@@ -270,18 +266,26 @@ public class World : MonoBehaviour
         else
             countries[countryID].namePoint = new Vector2(-999, -999);
     }
+
+    private List<Change> ExtractRange(int count)
+    {
+        count = Mathf.Min(changes.Count, count);
+        List<Change> extracted = changes.GetRange(0, count);
+        changes.RemoveRange(0, count);
+        return extracted;
+    }
 }
 
 public struct Change
 {
     int index;
-    float height;
+    float deltaHeight;
     int owner;
 
-    public Change(int index, float height, int owner)
+    public Change(int index, float deltaHeight, int owner)
     {
         this.index = index;
-        this.height = height;
+        this.deltaHeight = deltaHeight;
         this.owner = owner;
     }
 
