@@ -99,9 +99,9 @@ public class PointDistribution : MonoBehaviour
 
             Gizmos.DrawSphere(test.normalized, 0.02f);
 
-            //Vector3 closestPoint = points[Alternate()];
+            Vector3 closestPoint = points[LinearSearch()];
 
-            //Gizmos.DrawLine(test.normalized, closestPoint);
+            Gizmos.DrawLine(test.normalized, closestPoint);
         }
     }
 

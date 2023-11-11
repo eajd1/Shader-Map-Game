@@ -24,11 +24,10 @@ public class WorldBufferData
         countryColourBuffer.SetData(countries.Select(country => country.colour).ToArray());
     }
 
-    // an array of changes for the update shader to update
+    // update the other buffers from the changes
     public void UpdateBuffers(Change[] changes, ComputeShader updateShader)
     {
         int kernelIndex = updateShader.FindKernel("CSMain");
-        updateShader.SetInt("NumChanges", changes.Length);
         updateShader.SetInt("Resolution", resolution);
 
         ComputeBuffer changeBuffer = new ComputeBuffer(changes.Length, Change.SizeOf());

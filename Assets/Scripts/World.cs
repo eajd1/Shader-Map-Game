@@ -30,7 +30,8 @@ public class World : MonoBehaviour
     private Country[] countries; // all the countries in the world
 
     private List<WorldBufferData> subscribers;
-    private List<Change> changes;
+    private Change[] changes;
+    private bool changed;
     private bool simulate;
 
     public float MaxHeight { get { return maxHeight; } }
@@ -43,7 +44,7 @@ public class World : MonoBehaviour
     public void ToggleSimulation() => simulate = !simulate;
     public Country GetCountry(int index) => countries[index];
     public void Subscribe(WorldBufferData subscriber) => subscribers.Add(subscriber);
-    public void AddChange(Change change) { lock (changes) { changes.Add(change); } }
+    //public void AddChange(Change change) { lock (changes) { changes.Add(change); } }
     public float GetHeight(Vector2Int position) => heights[position.x * resolution + position.y];
     public Country GetOwner(Vector2Int position) => countries[ids[position.x * resolution + position.y]];
 
@@ -53,8 +54,11 @@ public class World : MonoBehaviour
         {
             lock (ids)
                 ids[index] = owner;
+            //lock (changes)
+            //    changes.Add(new Change(index, 0, owner));
             lock (changes)
-                changes.Add(new Change(index, 0, owner));
+                changes[index] = new Change(0, owner);
+            changed = true;
         }
     }
 
@@ -72,12 +76,7 @@ public class World : MonoBehaviour
             {
                 Vector2Int pos = queue.Dequeue();
                 int index = pos.x * resolution + pos.y;
-                lock (ids)
-                    ids[index] = owner;
-                lock (changes)
-                {
-                    changes.Add(new Change(index, 0, owner));
-                }
+                SetOwner(index, owner);
 
                 Vector2Int newPos = ValidatePosition(new Vector2Int(pos.x + 1, pos.y));
                 index = newPos.x * resolution + newPos.y;
@@ -194,7 +193,7 @@ public class World : MonoBehaviour
     void Start()
     {
         subscribers = new List<WorldBufferData>();
-        changes = new List<Change>();
+        changes = new Change[2 * resolution * resolution];
 
         heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
         ids = new int[2 * resolution * resolution];
@@ -213,18 +212,19 @@ public class World : MonoBehaviour
     {
         lock (changes)
         {
-            if (changes.Count > 0)
+            if (changed)
             {
+                // Find the centre of every country
                 //for (int i = 1; i < countries.Length; i++)
                 //    CalculateCountryCentre(i); // In future do this only when border changes are confirmed
 
-                Change[] array = ExtractRange(50).ToArray();
-                bufferData.UpdateBuffers(array, updateShader);
+
+                bufferData.UpdateBuffers(changes, updateShader);
                 foreach (WorldBufferData subscriber in subscribers)
                 {
-                    subscriber.UpdateBuffers(array, updateShader);
+                    subscriber.UpdateBuffers(changes, updateShader); // Uses a lot of bandwidth (thinking ahead for possible multiplayer)
                 }
-                //changes = new List<Change>();
+                changed = false;
             }
         }
     }
@@ -266,31 +266,21 @@ public class World : MonoBehaviour
         else
             countries[countryID].namePoint = new Vector2(-999, -999);
     }
-
-    private List<Change> ExtractRange(int count)
-    {
-        count = Mathf.Min(changes.Count, count);
-        List<Change> extracted = changes.GetRange(0, count);
-        changes.RemoveRange(0, count);
-        return extracted;
-    }
 }
 
 public struct Change
 {
-    int index;
     float deltaHeight;
     int owner;
 
-    public Change(int index, float deltaHeight, int owner)
+    public Change(float deltaHeight, int owner)
     {
-        this.index = index;
         this.deltaHeight = deltaHeight;
         this.owner = owner;
     }
 
     public static int SizeOf()
     {
-        return 2 * sizeof(int) + sizeof(float);
+        return sizeof(int) + sizeof(float);
     }
 }
