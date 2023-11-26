@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class LoadEarth
 {
-    public static float[] GenerateEarth(int resolution, float maxDepth, float maxHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask, float threshold)
+    public static Tile[] GenerateEarth(int resolution, float maxDepth, float maxHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask, float threshold)
     {
-        float[] heights = new float[2 * resolution * resolution];
+        Tile[] tiles = new Tile[2 * resolution * resolution];
 
         for (int x = 0; x < 2 * resolution; x++)
         {
@@ -16,16 +16,16 @@ public class LoadEarth
 
                 if (GetPixel(sealevelmask, x, y, resolution).r > threshold)
                 {
-                    heights[index] = Mathf.Max(GetPixel(heightmap, x, y, resolution).r * maxHeight, 0.1f);
+                    tiles[index] = new Tile(Mathf.Max(GetPixel(heightmap, x, y, resolution).r * maxHeight, 0.1f), 0);
                 }
                 else
                 {
-                    heights[index] = Mathf.Min((1 - GetPixel(bathymap, x, y, resolution).r) * maxDepth, -0.1f);
+                    tiles[index] = new Tile(Mathf.Min((1 - GetPixel(bathymap, x, y, resolution).r) * maxDepth, -0.1f), 0);
                 }
             }
         }
 
-        return heights;
+        return tiles;
     }
 
     private static Color GetPixel(Texture2D texture, int x, int y, int resolution)

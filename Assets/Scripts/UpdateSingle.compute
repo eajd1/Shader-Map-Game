@@ -1,0 +1,26 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct Tile
+{
+    float height;
+    int owner;
+};
+
+float Height;
+int Owner;
+int PositionX;
+int PositionY;
+int Resolution;
+RWStructuredBuffer<Tile> Tiles;
+
+[numthreads(1, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == (uint) PositionX && id.y == (uint) PositionY)
+    {
+        int index = (int) (id.x * Resolution + id.y);
+        Tiles[index].height = Height;
+        Tiles[index].owner = Owner;
+    }
+}

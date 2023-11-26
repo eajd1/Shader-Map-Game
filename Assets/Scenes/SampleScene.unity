@@ -525,7 +525,8 @@ MonoBehaviour:
   maxHeight: 5000
   maxDepth: -5000
   simulationShader: {fileID: 7200000, guid: 79c55f0e571e6ae47b57c5659ebb7b95, type: 3}
-  updateShader: {fileID: 7200000, guid: fc65cbc905158cb43952a72e50d71125, type: 3}
+  updateAllShader: {fileID: 7200000, guid: fc65cbc905158cb43952a72e50d71125, type: 3}
+  updateSingleShader: {fileID: 7200000, guid: a5f58718fc19940469cd69aa5c7ed838, type: 3}
 --- !u!1 &533782126
 GameObject:
   m_ObjectHideFlags: 0
@@ -942,40 +943,7 @@ Transform:
   m_Children:
   - {fileID: 191998061}
   - {fileID: 971172689}
-  m_Father: {fileID: 925263495}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &925263494
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 925263495}
-  m_Layer: 0
-  m_Name: Player
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &925263495
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 925263494}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 963194228}
-  - {fileID: 768821923}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 963194228}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
@@ -1070,8 +1038,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 925263495}
+  m_Children:
+  - {fileID: 768821923}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &963194230
 MonoBehaviour:
@@ -2282,4 +2251,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 566036670}
   - {fileID: 320172323}
-  - {fileID: 925263495}
+  - {fileID: 963194228}

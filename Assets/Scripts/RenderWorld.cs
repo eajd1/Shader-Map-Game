@@ -36,11 +36,9 @@ public class RenderWorld : MonoBehaviour
     private IEnumerator AfterStart()
     {
         yield return new WaitForEndOfFrame();
-        bufferData = new WorldBufferData(World.Instance.Heights, World.Instance.IDs, World.Instance.Countries);
-        World.Instance.Subscribe(bufferData);
+        bufferData = World.Instance.Buffers;
         int kernelIndex = renderShader.FindKernel("CSMain");
-        renderShader.SetBuffer(kernelIndex, "Heights", bufferData.heightBuffer);
-        renderShader.SetBuffer(kernelIndex, "CountryIds", bufferData.idBuffer);
+        renderShader.SetBuffer(kernelIndex, "Tiles", bufferData.tileBuffer);
         renderShader.SetBuffer(kernelIndex, "CountryColours", bufferData.countryColourBuffer);
     }
 
@@ -72,8 +70,7 @@ public class RenderWorld : MonoBehaviour
     private bool BuffersExist()
     {
         return bufferData != null &&
-            bufferData.heightBuffer != null &&
-            bufferData.idBuffer != null &&
+            bufferData.tileBuffer != null &&
             bufferData.countryColourBuffer != null;
     }
 

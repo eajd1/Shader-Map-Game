@@ -65,6 +65,10 @@ public class PlayerController : MonoBehaviour
         {
             mapMode = MapMode.Borders;
         }
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            mapMode = MapMode.SimpleCountry;
+        }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -135,5 +139,6 @@ public enum MapMode
     Terrain,
     Ocean,
     Country,
-    Borders
+    Borders,
+    SimpleCountry
 }

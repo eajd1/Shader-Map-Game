@@ -1,20 +1,15 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-struct height
+struct Tile
 {
     float height;
-    uint details;
-    float pressure;
-    float temperature;
-    float humitidy;
+    int owner;
 };
 
 RWTexture2D<float4> Result;
 
-RWStructuredBuffer<float> Heights;
-
-RWStructuredBuffer<int> CountryIds;
+RWStructuredBuffer<Tile> Tiles;
 RWStructuredBuffer<float3> CountryColours;
 
 int MapMode; // How to display the map
@@ -78,12 +73,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     uv *= Zoom;
     uv += CameraPosition;
 
-    if (uv.x > 1) {
+    if (uv.x > 1)
         uv.x = -1 + (uv.x - 1);
-    }
-    if (uv.x < -1) {
+    if (uv.x < -1)
         uv.x = 1 + (uv.x + 1);
-    }
     if (uv.y > 1 || uv.y < -1) {
         Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
         return;
@@ -91,24 +84,18 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     int2 coord = int2((uv.x + 1) / 2 * Resolution * 2, (uv.y + 1) / 2 * Resolution);
 
-    float height = Heights[GetPositonInBuffer(coord)];
-    int countryID = CountryIds[GetPositonInBuffer(coord)];
+    float height = Tiles[GetPositonInBuffer(coord)].height;
+    int countryID = Tiles[GetPositonInBuffer(coord)].owner;
     float3 countryColour = CountryColours[countryID];
 
     float3 terrainColour;
     if (height < 0) // Is ocean
-    {
         terrainColour = float3(0.0, 0.0, (1 - (height / DeepestPoint)));
-    }
     else if (height == 0)
-    {
         // Debug
         terrainColour = float3(0.0, 0.0, 0.0);
-    }
     else
-    {
         terrainColour = float3(0.0, sqrt(height / HighestPoint) * 0.8 + 0.2, 0.0);
-    }
 
     switch(MapMode)
     {
@@ -118,13 +105,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
         case 1: // Ocean
             if (height < 0)
-            {
                 Result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
-            }
             else
-            {
                 Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
-            }
             break;
 
         case 2: // Country
@@ -145,31 +128,26 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             }
 
             int neighbourIds = 0;
-            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(1, 0)))] == countryID)
-            {
+            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(1, 0)))].owner == countryID)
                 neighbourIds += 1;
-            }
-            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(0, 1)))] == countryID)
-            {
+            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(0, 1)))].owner == countryID)
                 neighbourIds += 1;
-            }
-            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(-1, 0)))] == countryID)
-            {
+            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(-1, 0)))].owner == countryID)
                 neighbourIds += 1;
-            }
-            if (CountryIds[GetPositonInBuffer(GetCoord(coord, int2(0, -1)))] == countryID)
-            {
+            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(0, -1)))].owner == countryID)
                 neighbourIds += 1;
-            }
 
             if (neighbourIds < 4)
-            {
                 Result[id.xy] = float4(countryColour, 1.0);
-            }
             else
-            {
                 Result[id.xy] = float4(terrainColour, 1.0);
-            }
+            break;
+        
+        case 4: //Simple Country
+            if (height > 0)
+                Result[id.xy] = float4(countryColour, 1.0);
+            else
+                Result[id.xy] = float4(terrainColour, 1.0);
             break;
     }
 }

@@ -22,43 +22,38 @@ public class World : MonoBehaviour
     [SerializeField] private float maxHeight;
     [SerializeField] private float maxDepth;
     [SerializeField] private ComputeShader simulationShader;
-    [SerializeField] private ComputeShader updateShader;
+    [SerializeField] private ComputeShader updateAllShader; // The shader for updating the whole screen of changes
+    [SerializeField] private ComputeShader updateSingleShader; // The shader for updating a single change
 
-    private float[] heights; // heights of each point in the world
-    private int[] ids; // id of the owner of each point in the world
+    private Tile[] tiles; // Tiles of the world
     private WorldBufferData bufferData;
     private Country[] countries; // all the countries in the world
 
-    private List<WorldBufferData> subscribers;
-    private Change[] changes;
     private bool changed;
     private bool simulate;
 
     public float MaxHeight { get { return maxHeight; } }
     public float MaxDepth { get { return maxDepth; } }
     public int WorldResolution { get { return resolution; } }
-    public float[] Heights { get { return heights; } }
-    public int[] IDs { get { return ids; } }
+    public Tile[] Tiles { get { return tiles; } }
     public Country[] Countries { get { return countries; } }
+    public WorldBufferData Buffers { get { return bufferData; } }
+    public ComputeShader UpdateAllShader { get { return updateAllShader; } }
+    public ComputeShader UpdateSingleShader { get { return updateSingleShader; } }
 
     public void ToggleSimulation() => simulate = !simulate;
     public Country GetCountry(int index) => countries[index];
-    public void Subscribe(WorldBufferData subscriber) => subscribers.Add(subscriber);
     //public void AddChange(Change change) { lock (changes) { changes.Add(change); } }
-    public float GetHeight(Vector2Int position) => heights[position.x * resolution + position.y];
-    public Country GetOwner(Vector2Int position) => countries[ids[position.x * resolution + position.y]];
+    public float GetHeight(Vector2Int position) => tiles[position.x * resolution + position.y].height;
+    public Country GetOwner(Vector2Int position) => countries[tiles[position.x * resolution + position.y].owner];
 
     public void SetOwner(int index, int owner)
     {
-        if (!(ids[index] == owner))
+        if (!(tiles[index].owner == owner) && tiles[index].height > 0)
         {
-            lock (ids)
-                ids[index] = owner;
-            //lock (changes)
-            //    changes.Add(new Change(index, 0, owner));
-            lock (changes)
-                changes[index] = new Change(0, owner);
-            changed = true;
+            lock (tiles)
+                tiles[index].owner = owner;
+            bufferData.UpdateSingleTile(tiles[index], index / resolution, index % resolution);
         }
     }
 
@@ -66,7 +61,7 @@ public class World : MonoBehaviour
     {
         Thread thread = new Thread(new ThreadStart(() =>
         {
-            if (heights[start.x * resolution + start.y] < 0)
+            if (tiles[start.x * resolution + start.y].height < 0)
                 return;
 
             Queue<Vector2Int> queue = new Queue<Vector2Int>();
@@ -76,32 +71,37 @@ public class World : MonoBehaviour
             {
                 Vector2Int pos = queue.Dequeue();
                 int index = pos.x * resolution + pos.y;
-                SetOwner(index, owner);
+                if (!(tiles[index].owner == owner))
+                {
+                    lock (tiles)
+                        tiles[index].owner = owner;
+                    changed = true;
+                }
 
                 Vector2Int newPos = ValidatePosition(new Vector2Int(pos.x + 1, pos.y));
                 index = newPos.x * resolution + newPos.y;
-                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
                 }
                 newPos = ValidatePosition(new Vector2Int(pos.x - 1, pos.y));
                 index = newPos.x * resolution + newPos.y;
-                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
                 }
                 newPos = ValidatePosition(new Vector2Int(pos.x, pos.y + 1));
                 index = newPos.x * resolution + newPos.y;
-                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
                 }
                 newPos = ValidatePosition(new Vector2Int(pos.x, pos.y - 1));
                 index = newPos.x * resolution + newPos.y;
-                if (heights[index] > 0 && ids[index] == 0 && !visited.Contains(index))
+                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
@@ -127,22 +127,42 @@ public class World : MonoBehaviour
         writer.Write(maxHeight);
         writer.Write(maxDepth);
 
-        foreach (float height in heights)
+        foreach (Tile tile in tiles)
         {
-            writer.Write(height);
-        }
-
-        foreach (int owner in ids)
-        {
-            writer.Write(owner);
-        }
-
-        foreach (Country country in countries)
-        {
-            writer.Write(country.ToString());
+            writer.Write(tile.height);
+            writer.Write(tile.owner);
         }
 
         writer.Close();
+        file.Close();
+    }
+
+    public void LoadWorld(string name)
+    {
+        string path = $"{Application.dataPath}/saves";
+        if (!Directory.Exists(path))
+        {
+            Debug.Log($"Directory: '{path}' doesnt exist");
+            return;
+        }
+
+        path = $"{path}/{name}.sav";
+        FileStream file = File.OpenRead(path);
+        BinaryReader reader = new BinaryReader(file);
+
+        resolution = reader.ReadInt32();
+        maxHeight = reader.ReadSingle();
+        maxDepth = reader.ReadSingle();
+
+        tiles = new Tile[2 * resolution * resolution];
+        for (int i = 0; i < tiles.Length; i++)
+        {
+            tiles[i] = new Tile(reader.ReadSingle(), reader.ReadInt32());
+        }
+
+        bufferData = new WorldBufferData(tiles, countries);
+
+        reader.Close();
         file.Close();
     }
 
@@ -192,14 +212,10 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        subscribers = new List<WorldBufferData>();
-        changes = new Change[2 * resolution * resolution];
-
-        heights = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
-        ids = new int[2 * resolution * resolution];
+        tiles = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
         LoadCountries();
 
-        bufferData = new WorldBufferData(heights, ids, countries);
+        bufferData = new WorldBufferData(tiles, countries);
     }
 
     // Update is called once per frame
@@ -210,20 +226,16 @@ public class World : MonoBehaviour
 
     private void SendChanges()
     {
-        lock (changes)
+        if (changed)
         {
-            if (changed)
+            lock (tiles)
             {
                 // Find the centre of every country
                 //for (int i = 1; i < countries.Length; i++)
                 //    CalculateCountryCentre(i); // In future do this only when border changes are confirmed
 
 
-                bufferData.UpdateBuffers(changes, updateShader);
-                foreach (WorldBufferData subscriber in subscribers)
-                {
-                    subscriber.UpdateBuffers(changes, updateShader); // Uses a lot of bandwidth (thinking ahead for possible multiplayer)
-                }
+                bufferData.UpdateBuffers(tiles);
                 changed = false;
             }
         }
@@ -250,9 +262,9 @@ public class World : MonoBehaviour
     {
         Vector2 centre = new Vector2(0, 0);
         int count = 0;
-        for (int i = 0; i < ids.Length; i++)
+        for (int i = 0; i < tiles.Length; i++)
         {
-            if (ids[i] == countryID)
+            if (tiles[i].owner == countryID)
             {
                 int x = i / resolution;
                 int y = i % resolution;
@@ -268,14 +280,14 @@ public class World : MonoBehaviour
     }
 }
 
-public struct Change
+public struct Tile
 {
-    float deltaHeight;
-    int owner;
+    public float height;
+    public int owner;
 
-    public Change(float deltaHeight, int owner)
+    public Tile(float height, int owner)
     {
-        this.deltaHeight = deltaHeight;
+        this.height = height;
         this.owner = owner;
     }
 
