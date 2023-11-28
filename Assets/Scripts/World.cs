@@ -212,7 +212,8 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tiles = LoadEarth.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
+        tiles = LoadPlanet.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
+        tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
         LoadCountries();
 
         bufferData = new WorldBufferData(tiles, countries);

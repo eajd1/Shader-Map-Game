@@ -31,36 +31,34 @@ int2 GetCoord(int2 coord, int2 offset)
     int y = coord.y + offset.y;
 
     x = x % (uint)(Resolution * 2);
-    if (x < 0) {
+    if (x < 0)
         x = (Resolution * 2) + x;
-    }
 
     // 2D map sphere wrapping the y is funny
-    if (y < 0) {
+    if (y < 0)
+    {
         y = 0;
 
-        if (x < Resolution) {
+        if (x < Resolution)
             x = Resolution + x;
-        }
-        else {
+        else
             x = x - Resolution;
-        }
     }
-    else if (y > Resolution - 1) {
+    else if (y > Resolution - 1)
+    {
         y = Resolution - 1;
 
-        if (x < Resolution) {
+        if (x < Resolution)
             x = Resolution + x;
-        }
-        else {
+        else
             x = x - Resolution;
-        }
     }
 
     return int2(x, y);
 }
 
-int GetPositonInBuffer(int2 coord) {
+int GetPositonInBuffer(int2 coord)
+{
     return coord.x * Resolution + coord.y;
 }
 
@@ -77,7 +75,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         uv.x = -1 + (uv.x - 1);
     if (uv.x < -1)
         uv.x = 1 + (uv.x + 1);
-    if (uv.y > 1 || uv.y < -1) {
+    if (uv.y > 1 || uv.y < -1)
+    {
         Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
         return;
     }
