@@ -20,7 +20,9 @@ public class World : MonoBehaviour
     [SerializeField] private Texture2D sealevelmask;
     [SerializeField] private float maskThreshold;
     [SerializeField] private float maxHeight;
+    [SerializeField] private float minHeight;
     [SerializeField] private float maxDepth;
+    [SerializeField] private float minDepth;
     [SerializeField] private ComputeShader simulationShader;
     [SerializeField] private ComputeShader updateAllShader; // The shader for updating the whole screen of changes
     [SerializeField] private ComputeShader updateSingleShader; // The shader for updating a single change
@@ -49,7 +51,7 @@ public class World : MonoBehaviour
 
     public void SetOwner(int index, int owner)
     {
-        if (!(tiles[index].owner == owner) && tiles[index].height > 0)
+        if (!(tiles[index].owner == owner) && !tiles[index].IsOcean())
         {
             lock (tiles)
                 tiles[index].owner = owner;
@@ -61,7 +63,7 @@ public class World : MonoBehaviour
     {
         Thread thread = new Thread(new ThreadStart(() =>
         {
-            if (tiles[start.x * resolution + start.y].height < 0)
+            if (tiles[start.x * resolution + start.y].IsOcean())
                 return;
 
             Queue<Vector2Int> queue = new Queue<Vector2Int>();
@@ -80,28 +82,28 @@ public class World : MonoBehaviour
 
                 Vector2Int newPos = ValidatePosition(new Vector2Int(pos.x + 1, pos.y));
                 index = newPos.x * resolution + newPos.y;
-                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
+                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
                 }
                 newPos = ValidatePosition(new Vector2Int(pos.x - 1, pos.y));
                 index = newPos.x * resolution + newPos.y;
-                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
+                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
                 }
                 newPos = ValidatePosition(new Vector2Int(pos.x, pos.y + 1));
                 index = newPos.x * resolution + newPos.y;
-                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
+                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
                 }
                 newPos = ValidatePosition(new Vector2Int(pos.x, pos.y - 1));
                 index = newPos.x * resolution + newPos.y;
-                if (tiles[index].height > 0 && tiles[index].owner == 0 && !visited.Contains(index))
+                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
                 {
                     queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
                     visited.Add(index);
@@ -131,6 +133,7 @@ public class World : MonoBehaviour
         {
             writer.Write(tile.height);
             writer.Write(tile.owner);
+            writer.Write(tile.details);
         }
 
         writer.Close();
@@ -157,7 +160,7 @@ public class World : MonoBehaviour
         tiles = new Tile[2 * resolution * resolution];
         for (int i = 0; i < tiles.Length; i++)
         {
-            tiles[i] = new Tile(reader.ReadSingle(), reader.ReadInt32());
+            tiles[i] = new Tile(reader.ReadSingle(), reader.ReadInt32(), reader.ReadUInt32());
         }
 
         bufferData = new WorldBufferData(tiles, countries);
@@ -212,8 +215,8 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tiles = LoadPlanet.GenerateEarth(resolution, maxDepth, maxHeight, heightmap, bathymap, sealevelmask, maskThreshold);
-        tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
+        tiles = LoadPlanet.GenerateEarth(resolution, maxDepth, minDepth, maxHeight, minHeight, heightmap, bathymap, sealevelmask, maskThreshold);
+        //tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
         LoadCountries();
 
         bufferData = new WorldBufferData(tiles, countries);
@@ -285,15 +288,28 @@ public struct Tile
 {
     public float height;
     public int owner;
+    public uint details;
 
-    public Tile(float height, int owner)
+    public Tile(float height, int owner, bool ocean)
     {
         this.height = height;
         this.owner = owner;
+        details = 0;
+        if (ocean)
+            details += 1 << 32; // Left-most bit is ocean
+    }
+
+    public Tile(float height, int owner, uint details)
+    {
+        this.height = height;
+        this.owner = owner;
+        this.details = details;
     }
 
     public static int SizeOf()
     {
-        return sizeof(int) + sizeof(float);
+        return sizeof(int) + sizeof(float) + sizeof(uint);
     }
+
+    public bool IsOcean() => (details >> 32) % 2 == 1;
 }

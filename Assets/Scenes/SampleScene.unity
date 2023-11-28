@@ -523,7 +523,9 @@ MonoBehaviour:
   sealevelmask: {fileID: 2800000, guid: 83d24cf6125caec4b9453bc6af9b52d9, type: 3}
   maskThreshold: 0.6
   maxHeight: 5000
-  maxDepth: -5000
+  minHeight: 0
+  maxDepth: 5000
+  minDepth: 1
   simulationShader: {fileID: 7200000, guid: 79c55f0e571e6ae47b57c5659ebb7b95, type: 3}
   updateAllShader: {fileID: 7200000, guid: fc65cbc905158cb43952a72e50d71125, type: 3}
   updateSingleShader: {fileID: 7200000, guid: a5f58718fc19940469cd69aa5c7ed838, type: 3}

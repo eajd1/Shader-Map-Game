@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LoadPlanet
 {
-    public static Tile[] GenerateEarth(int resolution, float maxDepth, float maxHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask, float threshold)
+    public static Tile[] GenerateEarth(int resolution, float maxDepth, float minDepth, float maxHeight, float minHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask, float threshold)
     {
         Tile[] tiles = new Tile[2 * resolution * resolution];
 
@@ -16,11 +16,17 @@ public class LoadPlanet
 
                 if (GetPixel(sealevelmask, x, y, resolution).r > threshold)
                 {
-                    tiles[index] = new Tile(Mathf.Max(GetPixel(heightmap, x, y, resolution).r * maxHeight, 0.1f), 0);
+                    // Is land
+                    tiles[index] = new Tile(Mathf.Lerp(minHeight, maxHeight, GetPixel(heightmap, x, y, resolution).r),
+                        0,
+                        false);
                 }
                 else
                 {
-                    tiles[index] = new Tile(Mathf.Min((1 - GetPixel(bathymap, x, y, resolution).r) * maxDepth, -0.1f), 0);
+                    // Is Water
+                    tiles[index] = new Tile(-Mathf.Lerp(maxDepth, minDepth, GetPixel(bathymap, x, y, resolution).r),
+                        0,
+                        true);
                 }
             }
         }
@@ -60,10 +66,15 @@ public class LoadPlanet
                 }
 
                 if (totalNoise < 0)
+                {
                     totalNoise *= -maxDepth * 2;
+                    tiles[index] = new Tile(totalNoise, 0, true);
+                }
                 else
+                {
                     totalNoise *= maxHeight * 2;
-                tiles[index] = new Tile(totalNoise, 0);
+                    tiles[index] = new Tile(totalNoise, 0, false);
+                }
             }
         }
         return tiles;

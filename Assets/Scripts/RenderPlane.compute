@@ -5,6 +5,7 @@ struct Tile
 {
     float height;
     int owner;
+    uint ocean;
 };
 
 RWTexture2D<float4> Result;
@@ -62,12 +63,12 @@ int GetPositonInBuffer(int2 coord)
     return coord.x * Resolution + coord.y;
 }
 
-[numthreads(1,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+// Returns x between 0 and 2 * resolution and y between 0 and resolution
+int2 CalculateCoord(uint2 pixel)
 {
     uint2 screenResolution = uint2(0, 0);
     Result.GetDimensions(screenResolution.x, screenResolution.y);
-    float2 uv = (id.xy / (float2)screenResolution) * 2 - 1;
+    float2 uv = (pixel.xy / (float2) screenResolution) * 2 - 1;
     uv *= Zoom;
     uv += CameraPosition;
 
@@ -75,24 +76,37 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         uv.x = -1 + (uv.x - 1);
     if (uv.x < -1)
         uv.x = 1 + (uv.x + 1);
-    if (uv.y > 1 || uv.y < -1)
+    
+    return int2((uv.x + 1) / 2 * Resolution * 2, (uv.y + 1) / 2 * Resolution);
+}
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int2 coord = CalculateCoord(id.xy);
+    if (coord.y >= Resolution || coord.y < 0)
     {
         Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
         return;
     }
-
-    int2 coord = int2((uv.x + 1) / 2 * Resolution * 2, (uv.y + 1) / 2 * Resolution);
+    
+    // Pixel Borders
+    //if (coord.x != CalculateCoord(id.xy + uint2(1, 0)).x || coord.y != CalculateCoord(id.xy + uint2(0, 1)).y)
+    //{
+    //    Result[id.xy] = float4(1.0, 1.0, 1.0, 1.0);
+    //    return;
+    //}    
 
     float height = Tiles[GetPositonInBuffer(coord)].height;
     int countryID = Tiles[GetPositonInBuffer(coord)].owner;
     float3 countryColour = CountryColours[countryID];
+    bool ocean = false;
+    if ((Tiles[GetPositonInBuffer(coord)].ocean >> 32)  % 2 == 1)
+        ocean = true;
 
     float3 terrainColour;
-    if (height < 0) // Is ocean
+    if (ocean)
         terrainColour = float3(0.0, 0.0, (1 - (height / DeepestPoint)));
-    else if (height == 0)
-        // Debug
-        terrainColour = float3(0.0, 0.0, 0.0);
     else
         terrainColour = float3(0.0, sqrt(height / HighestPoint) * 0.8 + 0.2, 0.0);
 
@@ -103,8 +117,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             break;
 
         case 1: // Ocean
-            if (height < 0)
-                Result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+            if (ocean)
+                Result[id.xy] = float4(1.0, 1.0, 1.0, 1.0);
             else
                 Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
             break;
@@ -143,10 +157,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             break;
         
         case 4: //Simple Country
-            if (height > 0)
-                Result[id.xy] = float4(countryColour, 1.0);
-            else
+            if (ocean)
                 Result[id.xy] = float4(terrainColour, 1.0);
+            else
+                Result[id.xy] = float4(countryColour, 1.0);
             break;
     }
 }
