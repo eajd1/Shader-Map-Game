@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System.Threading;
+using System;
 
 public class World : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class World : MonoBehaviour
     public static World Instance { get { if (instance == null) { Debug.LogError("No GameManager"); } return instance; } }
     private void Awake() { if (instance != null && instance != this) { Destroy(this); } else { instance = this; } }
 
-    [Range(128, 7327)] // Cant go higher than that for some reason
+    [Range(128, 8192)]
     [SerializeField] private int resolution;
     [SerializeField] private Texture2D heightmap;
     [SerializeField] private Texture2D bathymap;
@@ -30,6 +31,7 @@ public class World : MonoBehaviour
     private Tile[] tiles; // Tiles of the world
     private WorldBufferData bufferData;
     private Country[] countries; // all the countries in the world
+    private List<PlayerController> players;
 
     private bool changed;
     private bool simulate;
@@ -49,7 +51,15 @@ public class World : MonoBehaviour
     public float GetHeight(Vector2Int position) => tiles[position.x * resolution + position.y].height;
     public Country GetOwner(Vector2Int position) => countries[tiles[position.x * resolution + position.y].owner];
 
-    public void SetOwner(int index, int owner)
+    public void AddPlayer(PlayerController player)
+    {
+        if (!players.Contains(player))
+        {
+            players.Add(player);
+        }
+    }
+
+    public void SetOwner(int index, uint owner)
     {
         if (!(tiles[index].owner == owner) && !tiles[index].IsOcean())
         {
@@ -59,7 +69,7 @@ public class World : MonoBehaviour
         }
     }
 
-    public void SetOwnerFill(Vector2Int start, int owner)
+    public void SetOwnerFill(Vector2Int start, uint owner)
     {
         Thread thread = new Thread(new ThreadStart(() =>
         {
@@ -115,58 +125,117 @@ public class World : MonoBehaviour
 
     public void SaveWorld(string name)
     {
-        string path = $"{Application.dataPath}/saves";
+        string path = $"{Application.dataPath}/saves/{name}";
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
         }
 
-        path = $"{path}/{name}.sav";
+        byte[] heights = new byte[2 * resolution * resolution * 4];
+        for (int x = 0; x < 2 * resolution; x++)
+        {
+            for (int y = 0; y < resolution; y++)
+            {
+                int index = x * resolution + y;
+                byte[] bytes = BitConverter.GetBytes(tiles[index].height);
+                heights[index * 4] = bytes[0];
+                heights[index * 4 + 1] = bytes[1];
+                heights[index * 4 + 2] = bytes[2];
+                heights[index * 4 + 3] = bytes[3];
+            }
+        }
+        File.WriteAllBytes($"{path}/heights.sav", heights);
+
+        byte[] owners = new byte[2 * resolution * resolution * 4];
+        for (int x = 0; x < 2 * resolution; x++)
+        {
+            for (int y = 0; y < resolution; y++)
+            {
+                int index = x * resolution + y;
+                byte[] bytes = BitConverter.GetBytes(tiles[index].owner);
+                owners[index * 4] = bytes[0];
+                owners[index * 4 + 1] = bytes[1];
+                owners[index * 4 + 2] = bytes[2];
+                owners[index * 4 + 3] = bytes[3];
+            }
+        }
+        File.WriteAllBytes($"{path}/owners.sav", owners);
+
+        byte[] details = new byte[2 * resolution * resolution * 4];
+        for (int x = 0; x < 2 * resolution; x++)
+        {
+            for (int y = 0; y < resolution; y++)
+            {
+                int index = x * resolution + y;
+                byte[] bytes = BitConverter.GetBytes(tiles[index].details);
+                details[index * 4] = bytes[0];
+                details[index * 4 + 1] = bytes[1];
+                details[index * 4 + 2] = bytes[2];
+                details[index * 4 + 3] = bytes[3];
+            }
+        }
+        File.WriteAllBytes($"{path}/details.sav", details);
+
+        // Save info
+        path = $"{path}/data.sav";
         FileStream file = File.Create(path);
         BinaryWriter writer = new BinaryWriter(file);
-
+        writer.Write(BitConverter.IsLittleEndian);
         writer.Write(resolution);
         writer.Write(maxHeight);
         writer.Write(maxDepth);
-
-        foreach (Tile tile in tiles)
-        {
-            writer.Write(tile.height);
-            writer.Write(tile.owner);
-            writer.Write(tile.details);
-        }
-
         writer.Close();
         file.Close();
     }
 
     public void LoadWorld(string name)
     {
-        string path = $"{Application.dataPath}/saves";
+        string path = $"{Application.dataPath}/saves/{name}";
         if (!Directory.Exists(path))
         {
+            // Save doesnt exist
             Debug.Log($"Directory: '{path}' doesnt exist");
             return;
         }
 
-        path = $"{path}/{name}.sav";
-        FileStream file = File.OpenRead(path);
+        FileStream file = File.OpenRead($"{path}/data.sav");
         BinaryReader reader = new BinaryReader(file);
-
+        bool littleEndian = reader.ReadBoolean();
         resolution = reader.ReadInt32();
         maxHeight = reader.ReadSingle();
         maxDepth = reader.ReadSingle();
 
+        byte[] heights = File.ReadAllBytes($"{path}/heights.sav");
+        byte[] owners = File.ReadAllBytes($"{path}/owners.sav");
+        byte[] details = File.ReadAllBytes($"{path}/details.sav");
         tiles = new Tile[2 * resolution * resolution];
-        for (int i = 0; i < tiles.Length; i++)
+        for (int x = 0; x < 2 * resolution; x++)
         {
-            tiles[i] = new Tile(reader.ReadSingle(), reader.ReadInt32(), reader.ReadUInt32());
+            for (int y = 0; y < resolution; y++)
+            {
+                int index = x * resolution + y;
+
+                byte[] bytes = new byte[4];
+                Array.Copy(heights, index * 4, bytes, 0, 4);
+                float height = BitConverter.ToSingle(bytes);
+
+                Array.Copy(owners, index * 4, bytes, 0, 4);
+                uint owner = BitConverter.ToUInt32(bytes);
+                Array.Copy(details, index * 4, bytes, 0, 4);
+                uint detail = BitConverter.ToUInt32(bytes);
+
+                tiles[index] = new Tile(height, owner, detail);
+            }
         }
 
+        bufferData.ReleaseBuffers();
         bufferData = new WorldBufferData(tiles, countries);
 
         reader.Close();
         file.Close();
+
+        foreach (PlayerController player in players)
+            player.UpdateBuffers();
     }
 
     // If the given position is outside the bounds returns a position inside
@@ -219,6 +288,8 @@ public class World : MonoBehaviour
         //tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
         LoadCountries();
 
+        players = new List<PlayerController>();
+
         bufferData = new WorldBufferData(tiles, countries);
     }
 
@@ -255,7 +326,7 @@ public class World : MonoBehaviour
         var countryFile = Resources.Load<TextAsset>("countries");
         string[] lines = countryFile.text.Split("\n");
         countries = new Country[lines.Length];
-        for (int i = 0; i < lines.Length; i++)
+        for (uint i = 0; i < lines.Length; i++)
         {
             string[] values = lines[i].Split(",");
             countries[i] = new Country(i, new Vector3(float.Parse(values[1]), float.Parse(values[2]), float.Parse(values[3])), values[0]);
@@ -287,19 +358,25 @@ public class World : MonoBehaviour
 public struct Tile
 {
     public float height;
-    public int owner;
+    public uint owner;
     public uint details;
 
-    public Tile(float height, int owner, bool ocean)
+    // Possible Future data:
+    // Population
+    // Temperature
+    // Moisture
+    // Resource
+
+    public Tile(float height, uint owner, bool ocean)
     {
         this.height = height;
         this.owner = owner;
         details = 0;
         if (ocean)
-            details += 1 << 32; // Left-most bit is ocean
+            details += 1u << 31; // Left-most bit is ocean
     }
 
-    public Tile(float height, int owner, uint details)
+    public Tile(float height, uint owner, uint details)
     {
         this.height = height;
         this.owner = owner;
@@ -311,5 +388,5 @@ public struct Tile
         return sizeof(int) + sizeof(float) + sizeof(uint);
     }
 
-    public bool IsOcean() => (details >> 32) % 2 == 1;
+    public bool IsOcean() => (details >> 31) % 2 == 1;
 }

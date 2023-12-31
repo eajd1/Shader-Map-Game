@@ -69,8 +69,15 @@ public class UIManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector2Int pos = player.CursorPosition;
-        text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {World.Instance.GetHeight(pos)}";
+        try
+        {
+            Vector2Int pos = player.CursorPosition;
+            text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {World.Instance.GetHeight(pos)}";
+        }
+        catch
+        {
+            return;
+        }
 
         for (int i = 0; i < countryNames.Length; i++)
         {

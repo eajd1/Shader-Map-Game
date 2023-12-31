@@ -4,8 +4,8 @@
 struct Tile
 {
     float height;
-    int owner;
-    uint ocean;
+    uint owner;
+    uint details;
 };
 
 RWTexture2D<float4> Result;
@@ -58,7 +58,7 @@ int2 GetCoord(int2 coord, int2 offset)
     return int2(x, y);
 }
 
-int GetPositonInBuffer(int2 coord)
+uint GetPositionInBuffer(int2 coord)
 {
     return coord.x * Resolution + coord.y;
 }
@@ -90,18 +90,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     }
     
-    // Pixel Borders
-    //if (coord.x != CalculateCoord(id.xy + uint2(1, 0)).x || coord.y != CalculateCoord(id.xy + uint2(0, 1)).y)
-    //{
-    //    Result[id.xy] = float4(1.0, 1.0, 1.0, 1.0);
-    //    return;
-    //}    
-
-    float height = Tiles[GetPositonInBuffer(coord)].height;
-    int countryID = Tiles[GetPositonInBuffer(coord)].owner;
+    uint pos = GetPositionInBuffer(coord);
+    float height = Tiles[pos].height;
+    uint countryID = Tiles[pos].owner;
     float3 countryColour = CountryColours[countryID];
     bool ocean = false;
-    if ((Tiles[GetPositonInBuffer(coord)].ocean >> 32)  % 2 == 1)
+    if ((Tiles[pos].details >> 31) % 2 == 1)
         ocean = true;
 
     float3 terrainColour;
@@ -140,17 +134,17 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                 return;
             }
 
-            int neighbourIds = 0;
-            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(1, 0)))].owner == countryID)
-                neighbourIds += 1;
-            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(0, 1)))].owner == countryID)
-                neighbourIds += 1;
-            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(-1, 0)))].owner == countryID)
-                neighbourIds += 1;
-            if (Tiles[GetPositonInBuffer(GetCoord(coord, int2(0, -1)))].owner == countryID)
-                neighbourIds += 1;
+            int sameOwnerNeighbours = 0;
+            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(1, 0)))].owner == countryID)
+                sameOwnerNeighbours += 1;
+            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(0, 1)))].owner == countryID)
+                sameOwnerNeighbours += 1;
+            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(-1, 0)))].owner == countryID)
+                sameOwnerNeighbours += 1;
+            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(0, -1)))].owner == countryID)
+                sameOwnerNeighbours += 1;
 
-            if (neighbourIds < 4)
+            if (sameOwnerNeighbours < 4)
                 Result[id.xy] = float4(countryColour, 1.0);
             else
                 Result[id.xy] = float4(terrainColour, 1.0);

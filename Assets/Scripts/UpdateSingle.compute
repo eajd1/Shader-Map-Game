@@ -4,12 +4,11 @@
 struct Tile
 {
     float height;
-    int owner;
+    uint owner;
     uint ocean;
 };
 
-float Height;
-int Owner;
+RWStructuredBuffer<Tile> Change;
 int PositionX;
 int PositionY;
 int Resolution;
@@ -21,7 +20,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (id.x == (uint) PositionX && id.y == (uint) PositionY)
     {
         int index = (int) (id.x * Resolution + id.y);
-        Tiles[index].height = Height;
-        Tiles[index].owner = Owner;
+        Tiles[index].height = Change[0].height;
+        Tiles[index].owner = Change[0].owner;
     }
 }

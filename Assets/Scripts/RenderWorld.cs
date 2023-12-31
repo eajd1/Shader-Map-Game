@@ -36,6 +36,11 @@ public class RenderWorld : MonoBehaviour
     private IEnumerator AfterStart()
     {
         yield return new WaitForEndOfFrame();
+        UpdateBuffers();
+    }
+
+    public void UpdateBuffers()
+    {
         bufferData = World.Instance.Buffers;
         int kernelIndex = renderShader.FindKernel("CSMain");
         renderShader.SetBuffer(kernelIndex, "Tiles", bufferData.tileBuffer);

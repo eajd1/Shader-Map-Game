@@ -1,22 +1,20 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-struct Pixel
+struct Tile
 {
     float height;
+    int owner;
     uint details;
-    float pressure;
-    float temperature;
-    float humitidy;
 };
 
 RWTexture2D<float4> result;
 
-RWStructuredBuffer<Pixel> pixels;
+RWStructuredBuffer<Tile> tiles;
 
 int mapMode; // How to display the map
 
-float resolution; // resolution of pixels
+float resolution; // resolution of tiles
 int2 screenResolution; // resolution of the screen
 float deepestPoint; // Deepest point in sea
 float highestPoint; // Highest point on land
@@ -109,30 +107,30 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     int2 coord = int2(x, y);
 
-    if (x % 2 == 0)
-    {
-        if (y % 2 == 0)
-        {
-            result[id.xy] = float4(1.0, 0.0, 1.0, 1.0); return;
-        }
-        else
-        {
-            result[id.xy] = float4(1.0, 0.0, 0.0, 1.0); return;
-        }
-    }
-    else
-    {
-        if (y % 2 == 0)
-        {
-            result[id.xy] = float4(0.0, 1.0, 1.0, 1.0); return;
-        }
-        else
-        {
-            result[id.xy] = float4(0.0, 1.0, 0.0, 1.0); return;
-        }
-    }
+    //if (x % 2 == 0)
+    //{
+    //    if (y % 2 == 0)
+    //    {
+    //        result[id.xy] = float4(1.0, 0.0, 1.0, 1.0); return;
+    //    }
+    //    else
+    //    {
+    //        result[id.xy] = float4(1.0, 0.0, 0.0, 1.0); return;
+    //    }
+    //}
+    //else
+    //{
+    //    if (y % 2 == 0)
+    //    {
+    //        result[id.xy] = float4(0.0, 1.0, 1.0, 1.0); return;
+    //    }
+    //    else
+    //    {
+    //        result[id.xy] = float4(0.0, 1.0, 0.0, 1.0); return;
+    //    }
+    //}
 
-    Pixel pixel = pixels[coord.x * resolution + coord.y];
+    Tile pixel = tiles[coord.x * resolution + coord.y];
 
     switch(mapMode)
     {

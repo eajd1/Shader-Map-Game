@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Country
 {
-    private int id;
-    public int ID { get { return id; } }
+    private uint id;
+    public uint ID { get { return id; } }
     public Vector3 colour; // 3 floats between 0 and 1
     public string name;
     public Vector2 namePoint = new Vector2(-999, -999);
 
-    public Country(int id, Vector3 colour, string name)
+    public Country(uint id, Vector3 colour, string name)
     {
         this.id = id;
         this.colour = colour;

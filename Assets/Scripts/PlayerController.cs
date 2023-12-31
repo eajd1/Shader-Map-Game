@@ -31,6 +31,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void UpdateBuffers()
+    {
+        renderWorld.UpdateBuffers();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -40,6 +45,7 @@ public class PlayerController : MonoBehaviour
         mapMode = MapMode.Terrain;
 
         country = World.Instance.GetCountry(0);
+        World.Instance.AddPlayer(this);
     }
 
     // Update is called once per frame
@@ -88,6 +94,15 @@ public class PlayerController : MonoBehaviour
         if (Input.GetButtonDown(Inputs.MMB))
         {
             World.Instance.SetOwnerFill(cursorPosition, country.ID);
+        }
+
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            World.Instance.LoadWorld("test");
+        }
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            World.Instance.SaveWorld("test");
         }
     }
 

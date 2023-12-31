@@ -38,9 +38,9 @@ public class PointDistribution : MonoBehaviour
         renderTexture.enableRandomWrite = true;
         renderTexture.Create();
 
-        pointBuffer = new ComputeBuffer(numPoints, sizeof(float) * 3);
+        pointBuffer = new ComputeBuffer(points.Length, sizeof(float) * 3);
         pointBuffer.SetData(points);
-        colourBuffer = new ComputeBuffer(numPoints, sizeof(float));
+        colourBuffer = new ComputeBuffer(colours.Length, sizeof(float));
         colourBuffer.SetData(colours);
 
         int kernelIndex = shader.FindKernel("CSMain");
@@ -133,6 +133,12 @@ public class PointDistribution : MonoBehaviour
         colourBuffer.Release();
     }
 
+    private float GetWidth(float y)
+    {
+        y = Mathf.Clamp(y, -1, 1);
+        return Mathf.Sqrt(1 - y * y);
+    }
+
     private void GetPoints()
     {
         colours = new float[numPoints];
@@ -153,37 +159,25 @@ public class PointDistribution : MonoBehaviour
             colours[i] = (float)i / numPoints;
         }
 
-        //int height = numPoints / 2;
-        //points = new Vector3[height * numPoints];
-        //colours = new float[height * numPoints];
-        //for (int i = 0; i < height; i++)
-        //{
-        //    float y = (i / (float)height * 2f) - 1f;
-        //    float radius = Mathf.Sqrt(1 - y * y);
-        //    float anglestep = (2 * Mathf.PI) / (numPoints * radius);
-        //    for (int j = 0; j < numPoints * radius; j++)
-        //    {
-        //        float angle = anglestep * j;
-        //        float x = Mathf.Cos(angle) * radius;
-        //        float z = Mathf.Sin(angle) * radius;
+        colours = new float[(int)(Mathf.PI * numPoints * numPoints) - numPoints];
+        points = new Vector3[(int)(Mathf.PI * numPoints * numPoints) - numPoints];
 
-        //        points[i + j] = new Vector3(x, y, z);
-        //        colours[i + j] = (float)(i + j) / (height * numPoints);
-        //    }
-        //}
+        int index = 0;
+        for (int y = 0; y < numPoints * 2; y++)
+        {
+            int width = Mathf.Min((int)(GetWidth((y - numPoints) / (float)numPoints) * 2 * numPoints), 2 * numPoints - 1);
+            for (int x = 0; x < width; x++)
+            {
+                colours[index] = index / (float)colours.Length;
 
-        //int height = numPoints / 2;
-        //points = new Vector3[height];
-        //colours = new float[height];
-        //for (int i = 0; i < height; i++)
-        //{
-        //    float y = (i / (float)height * 2f) - 1f;
-        //    float radius = Mathf.Sqrt(1 - y * y);
-        //    float x = Mathf.Cos(0) * radius;
-        //    float z = Mathf.Sin(0) * radius;
-
-        //    points[i] = new Vector3(x, y, z);
-        //    colours[i] = (float)(i) / (height * numPoints);
-        //}
+                float yPos = (y - numPoints) / (float)numPoints;
+                float xPos = Mathf.Cos(x / (float)width * 2 * Mathf.PI) * GetWidth(yPos);
+                float zPos = Mathf.Sin(x / (float)width * 2 * Mathf.PI) * GetWidth(yPos);
+                points[index] = new Vector3(xPos, yPos, zPos);
+                index++;
+            }
+        }
+        //Debug.Log(index);
+        //Debug.Log(points.Length);
     }
 }

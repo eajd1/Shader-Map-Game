@@ -40,15 +40,18 @@ public class WorldBufferData
     public void UpdateSingleTile(Tile change, int x, int y)
     {
         ComputeShader updateSingleShader = World.Instance.UpdateSingleShader;
-        int kernalIndex = updateSingleShader.FindKernel("CSMain");
+        int kernelIndex = updateSingleShader.FindKernel("CSMain");
+        ComputeBuffer buffer = new ComputeBuffer(1, Tile.SizeOf());
+        Tile[] tile = new Tile[] { change };
+        buffer.SetData(tile);
+        updateSingleShader.SetBuffer(kernelIndex, "Change", buffer);
         updateSingleShader.SetInt("Resolution", resolution);
         updateSingleShader.SetInt("PositionX", x);
         updateSingleShader.SetInt("PositionY", y);
-        updateSingleShader.SetFloat("Height", change.height);
-        updateSingleShader.SetInt("Owner", change.owner);
-        updateSingleShader.SetBuffer(kernalIndex, "Tiles", tileBuffer);
+        updateSingleShader.SetBuffer(kernelIndex, "Tiles", tileBuffer);
 
-        updateSingleShader.Dispatch(kernalIndex, 2 * resolution, resolution, 1);
+        updateSingleShader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
+        buffer.Release();
     }
 
     ~WorldBufferData()

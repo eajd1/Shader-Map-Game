@@ -145,9 +145,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 rayDirection = -cameraPosition;
 
     // Assuming left handed coords
-    float3 cameraPerp = normalize(cross(cameraPosition, float3(0.0, 1.0, 0.0)));
-    float3 cameraUp = normalize(cross(cameraPerp, cameraPosition));
-    float3 rayOrigin = cameraPosition + ndc.x * cameraPerp * zoom + ndc.y * cameraUp * zoom; // Doesn't work when camera moves up (needs to rotate)
+    float3 cameraX = normalize(cross(cameraPosition, float3(0.0, 1.0, 0.0)));
+    float3 cameraY = normalize(cross(cameraX, cameraPosition));
+    float3 rayOrigin = cameraPosition + ndc.x * cameraX * zoom + ndc.y * cameraY * zoom; // Doesn't work when camera moves up (needs to rotate)
 
     float4 p = HitSphere(rayOrigin, rayDirection);
 
@@ -157,21 +157,24 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         return;
     }
 
-    //float3 pos = float3(p.x, p.y, p.z);
-    //float3 closest = points[0];
-    //int closestIndex = 0;
-    //for (int i = 0; i < bufferLength; i++) { // VERY SLOW
-    //    if (dot(pos, points[i]) > dot(pos, closest)) {
-    //        closest = points[i];
-    //        closestIndex = i;
-    //    }
-    //}
+    float3 pos = float3(p.x, p.y, p.z);
+    float3 closest = points[0];
+    int closestIndex = 0;
+    for (int i = 0; i < bufferLength; i++)
+    { // VERY SLOW
+        if (dot(pos, points[i]) > dot(pos, closest))
+        {
+            closest = points[i];
+            closestIndex = i;
+        }
+    }
+    Result[id.xy] = float4(closest, 1.0);
 
-    int closestIndex = inverseSF(float3(p.x, p.y, p.z), bufferLength);
-    float colour = colours[closestIndex];
+    //int closestIndex = inverseSF(float3(p.x, p.y, p.z), bufferLength);
+    //float colour = colours[closestIndex];
     
     //float colour = colours[BinarySearch(p.y)];
     //float colour = FindNearest(float3(p.x, p.y, p.z));
 
-    Result[id.xy] = float4(colour, colour, colour, 1.0);
+    //Result[id.xy] = float4(colour, colour, colour, 1.0);
 }
