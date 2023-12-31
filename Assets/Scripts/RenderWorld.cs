@@ -51,7 +51,7 @@ public class RenderWorld : MonoBehaviour
     void Update()
     {
         renderShader.SetInt("MapMode", (int)playerController.GetMapMode());
-        renderShader.SetFloat("Resolution", World.Instance.WorldResolution);
+        renderShader.SetInt("Resolution", World.Instance.WorldResolution);
         renderShader.SetFloat("DeepestPoint", World.Instance.MaxDepth);
         renderShader.SetFloat("HighestPoint", World.Instance.MaxHeight);
         renderShader.SetFloat("LowestPoint", 0);

@@ -72,7 +72,7 @@ public class UIManager : MonoBehaviour
         try
         {
             Vector2Int pos = player.CursorPosition;
-            text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {World.Instance.GetHeight(pos)}";
+            text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {World.Instance.GetHeight(pos)}\nIndex: {pos.x * World.Instance.WorldResolution + pos.y}";
         }
         catch
         {
