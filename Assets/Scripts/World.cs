@@ -217,11 +217,17 @@ public class World : MonoBehaviour
 
                 byte[] bytes = new byte[4];
                 Array.Copy(heights, index * 4, bytes, 0, 4);
+                if (BitConverter.IsLittleEndian != littleEndian)
+                    Array.Reverse(bytes);
                 float height = BitConverter.ToSingle(bytes);
 
                 Array.Copy(owners, index * 4, bytes, 0, 4);
+                if (BitConverter.IsLittleEndian != littleEndian)
+                    Array.Reverse(bytes);
                 uint owner = BitConverter.ToUInt32(bytes);
                 Array.Copy(details, index * 4, bytes, 0, 4);
+                if (BitConverter.IsLittleEndian != littleEndian)
+                    Array.Reverse(bytes);
                 uint detail = BitConverter.ToUInt32(bytes);
 
                 tiles[index] = new Tile(height, owner, detail);
