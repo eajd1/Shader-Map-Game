@@ -52,9 +52,8 @@ public class RenderWorld : MonoBehaviour
     {
         renderShader.SetInt("MapMode", (int)playerController.GetMapMode());
         renderShader.SetInt("Resolution", World.Instance.WorldResolution);
-        renderShader.SetFloat("DeepestPoint", World.Instance.MaxDepth);
         renderShader.SetFloat("HighestPoint", World.Instance.MaxHeight);
-        renderShader.SetFloat("LowestPoint", 0);
+        renderShader.SetFloat("LowestPoint", World.Instance.MinHeight);
         renderShader.SetFloat("CountryOpacity", countryOpacity);
         Vector2 cameraPos = playerController.GetControls().GetUV();
         renderShader.SetFloats("CameraPosition", new float[] { cameraPos.x, cameraPos.y });

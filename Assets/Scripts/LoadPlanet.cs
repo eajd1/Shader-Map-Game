@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LoadPlanet
 {
-    public static Tile[] GenerateEarth(int resolution, float maxDepth, float minDepth, float maxHeight, float minHeight, Texture2D heightmap, Texture2D bathymap, Texture2D sealevelmask, float threshold)
+    public static Tile[] GenerateEarth(int resolution, float maxHeight, float minHeight, Texture2D heightmap, Texture2D sealevelmask, float threshold)
     {
         Tile[] tiles = new Tile[2 * resolution * resolution];
 
@@ -14,19 +14,21 @@ public class LoadPlanet
             {
                 int index = x * resolution + y;
 
-                if (GetPixel(sealevelmask, x, y, resolution).r > threshold)
+                if (GetPixel(sealevelmask, x, y, resolution).grayscale == 1)
                 {
-                    // Is land
-                    tiles[index] = new Tile(Mathf.Lerp(minHeight, maxHeight, GetPixel(heightmap, x, y, resolution).r),
-                        0,
-                        false);
+                    // Land
+                    tiles[index] = new Tile(Mathf.Lerp(minHeight, maxHeight, GetPixel(heightmap, x, y, resolution).r));
                 }
-                else
+                else if (GetPixel(sealevelmask, x, y, resolution).b == 1)
                 {
-                    // Is Water
-                    tiles[index] = new Tile(-Mathf.Lerp(maxDepth, minDepth, GetPixel(bathymap, x, y, resolution).r),
-                        0,
-                        true);
+                    // Ocean
+                    tiles[index] = new Tile(0).SetOcean(true);
+                }
+                else if (GetPixel(sealevelmask, x, y, resolution).r == 1)
+                {
+                    // Lake
+                    tiles[index] = new Tile(Mathf.Lerp(minHeight, maxHeight, GetPixel(heightmap, x, y, resolution).r))
+                        .SetLake(true);
                 }
             }
         }

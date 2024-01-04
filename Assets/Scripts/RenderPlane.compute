@@ -15,8 +15,7 @@ RWStructuredBuffer<float3> CountryColours;
 
 int MapMode; // How to display the map
 
-int Resolution; // resolution of heights
-float DeepestPoint; // Deepest point in sea
+int Resolution; // resolution of tiles
 float HighestPoint; // Highest point on land
 float LowestPoint; // Lowest point on land
 float CountryOpacity; // Opacity of the countries in country map mode
@@ -100,7 +99,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float3 terrainColour;
     if (ocean)
-        terrainColour = float3(0.0, 0.0, (1 - (height / -DeepestPoint)));
+        //terrainColour = float3(0.0, 0.0, (1 - (height / -DeepestPoint)));
+        terrainColour = float3(0.0, 0.0, 0.5);
     else
         terrainColour = float3(0.0, sqrt(height / HighestPoint) * 0.8 + 0.2, 0.0);
 

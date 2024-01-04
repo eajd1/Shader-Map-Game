@@ -17,13 +17,10 @@ public class World : MonoBehaviour
     [Range(128, 8192)]
     [SerializeField] private int resolution;
     [SerializeField] private Texture2D heightmap;
-    [SerializeField] private Texture2D bathymap;
     [SerializeField] private Texture2D sealevelmask;
     [SerializeField] private float maskThreshold;
     [SerializeField] private float maxHeight;
     [SerializeField] private float minHeight;
-    [SerializeField] private float maxDepth;
-    [SerializeField] private float minDepth;
     [SerializeField] private ComputeShader simulationShader;
     [SerializeField] private ComputeShader updateAllShader; // The shader for updating the whole screen of changes
     [SerializeField] private ComputeShader updateSingleShader; // The shader for updating a single change
@@ -37,7 +34,7 @@ public class World : MonoBehaviour
     private bool simulate;
 
     public float MaxHeight { get { return maxHeight; } }
-    public float MaxDepth { get { return maxDepth; } }
+    public float MinHeight { get { return minHeight; } }
     public int WorldResolution { get { return resolution; } }
     public Tile[] Tiles { get { return tiles; } }
     public Country[] Countries { get { return countries; } }
@@ -183,7 +180,7 @@ public class World : MonoBehaviour
         writer.Write(BitConverter.IsLittleEndian);
         writer.Write(resolution);
         writer.Write(maxHeight);
-        writer.Write(maxDepth);
+        writer.Write(minHeight);
         writer.Close();
         file.Close();
     }
@@ -203,7 +200,7 @@ public class World : MonoBehaviour
         bool littleEndian = reader.ReadBoolean();
         resolution = reader.ReadInt32();
         maxHeight = reader.ReadSingle();
-        maxDepth = reader.ReadSingle();
+        minHeight = reader.ReadSingle();
 
         byte[] heights = File.ReadAllBytes($"{path}/heights.sav");
         byte[] owners = File.ReadAllBytes($"{path}/owners.sav");
@@ -290,7 +287,7 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tiles = LoadPlanet.GenerateEarth(resolution, maxDepth, minDepth, maxHeight, minHeight, heightmap, bathymap, sealevelmask, maskThreshold);
+        tiles = LoadPlanet.GenerateEarth(resolution, maxHeight, minHeight, heightmap, sealevelmask, maskThreshold);
         //tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
         LoadCountries();
 
@@ -359,40 +356,4 @@ public class World : MonoBehaviour
         else
             countries[countryID].namePoint = new Vector2(-999, -999);
     }
-}
-
-public struct Tile
-{
-    public float height;
-    public uint owner;
-    public uint details;
-
-    // Possible Future data:
-    // Population
-    // Temperature
-    // Moisture
-    // Resource
-
-    public Tile(float height, uint owner, bool ocean)
-    {
-        this.height = height;
-        this.owner = owner;
-        details = 0;
-        if (ocean)
-            details += 1u << 31; // Left-most bit is ocean
-    }
-
-    public Tile(float height, uint owner, uint details)
-    {
-        this.height = height;
-        this.owner = owner;
-        this.details = details;
-    }
-
-    public static int SizeOf()
-    {
-        return sizeof(int) + sizeof(float) + sizeof(uint);
-    }
-
-    public bool IsOcean() => (details >> 31) % 2 == 1;
 }
