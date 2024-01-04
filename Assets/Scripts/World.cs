@@ -24,6 +24,7 @@ public class World : MonoBehaviour
     [SerializeField] private ComputeShader simulationShader;
     [SerializeField] private ComputeShader updateAllShader; // The shader for updating the whole screen of changes
     [SerializeField] private ComputeShader updateSingleShader; // The shader for updating a single change
+    [SerializeField] private ComputeShader loadShader;
 
     private Tile[] tiles; // Tiles of the world
     private WorldBufferData bufferData;
@@ -287,7 +288,8 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tiles = LoadPlanet.GenerateEarth(resolution, maxHeight, minHeight, heightmap, sealevelmask, maskThreshold);
+        tiles = LoadPlanet.GenerateEarthShader(loadShader, resolution, maxHeight, minHeight, heightmap, sealevelmask);
+        //tiles = LoadPlanet.GenerateEarth(resolution, maxHeight, minHeight, heightmap, sealevelmask, maskThreshold);
         //tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
         LoadCountries();
 

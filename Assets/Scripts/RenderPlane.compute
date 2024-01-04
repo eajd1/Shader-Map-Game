@@ -96,13 +96,19 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     bool ocean = false;
     if ((Tiles[pos].details >> 31) % 2 == 1)
         ocean = true;
+    bool lake = false;
+    if ((Tiles[pos].details >> 30) % 2 == 1)
+        lake = true;
 
     float3 terrainColour;
+    float v = sqrt(height / HighestPoint) * 0.8 + 0.2;
     if (ocean)
         //terrainColour = float3(0.0, 0.0, (1 - (height / -DeepestPoint)));
         terrainColour = float3(0.0, 0.0, 0.5);
+    else if (lake)
+        terrainColour = float3(0.0, v * 0.5, v);
     else
-        terrainColour = float3(0.0, sqrt(height / HighestPoint) * 0.8 + 0.2, 0.0);
+        terrainColour = float3(0.0, v, 0.0);
 
     switch(MapMode)
     {

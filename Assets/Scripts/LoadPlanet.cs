@@ -36,6 +36,24 @@ public class LoadPlanet
         return tiles;
     }
 
+    public static Tile[] GenerateEarthShader(ComputeShader shader, int resolution, float maxHeight, float minHeight, Texture2D heightmap, Texture2D mask)
+    {
+        Tile[] tiles = new Tile[2 * resolution * resolution];
+        shader.SetInt("Resolution", resolution);
+        shader.SetFloat("maxHeight", maxHeight);
+        shader.SetFloat("minHeight", minHeight);
+        int kernelIndex = shader.FindKernel("CSMain");
+        shader.SetTexture(kernelIndex, "Heightmap", heightmap);
+        shader.SetTexture(kernelIndex, "Mask", mask);
+        ComputeBuffer tileBuffer = new ComputeBuffer(tiles.Length, Tile.SizeOf());
+        tileBuffer.SetData(tiles);
+        shader.SetBuffer(kernelIndex, "Tiles", tileBuffer);
+        shader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
+        tileBuffer.GetData(tiles);
+        tileBuffer.Release();
+        return tiles;
+    }
+
     private static Color GetPixel(Texture2D texture, int x, int y, int resolution)
     {
         float u = x / (float)(resolution * 2);
