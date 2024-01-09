@@ -10,6 +10,9 @@ public class WorldBufferData
     public ComputeBuffer tileBuffer;
     public ComputeBuffer countryColourBuffer;
 
+    private ComputeShader updateAllShader;
+    private ComputeShader updateSingleShader;
+
     public int resolution = World.Instance.WorldResolution;
 
     public WorldBufferData(Tile[] tiles, Country[] countries)
@@ -19,12 +22,14 @@ public class WorldBufferData
 
         tileBuffer.SetData(tiles);
         countryColourBuffer.SetData(countries.Select(country => country.colour).ToArray());
+
+        updateAllShader = Resources.Load<ComputeShader>("UpdateBuffers");
+        updateSingleShader = Resources.Load<ComputeShader>("UpdateSingle");
     }
 
     // update the other buffers from the changes
     public void UpdateBuffers(Tile[] changes)
     {
-        ComputeShader updateAllShader = World.Instance.UpdateAllShader;
         int kernelIndex = updateAllShader.FindKernel("CSMain");
         updateAllShader.SetInt("Resolution", resolution);
 
@@ -39,7 +44,6 @@ public class WorldBufferData
 
     public void UpdateSingleTile(Tile change, int x, int y)
     {
-        ComputeShader updateSingleShader = World.Instance.UpdateSingleShader;
         int kernelIndex = updateSingleShader.FindKernel("CSMain");
         ComputeBuffer buffer = new ComputeBuffer(1, Tile.SizeOf());
         Tile[] tile = new Tile[] { change };

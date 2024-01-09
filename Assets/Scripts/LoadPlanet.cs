@@ -36,8 +36,9 @@ public class LoadPlanet
         return tiles;
     }
 
-    public static Tile[] GenerateEarthShader(ComputeShader shader, int resolution, float maxHeight, float minHeight, Texture2D heightmap, Texture2D mask)
+    public static Tile[] GenerateEarthShader(int resolution, float maxHeight, float minHeight, Texture2D heightmap, Texture2D mask)
     {
+        ComputeShader shader = Resources.Load<ComputeShader>("LoadMap");
         Tile[] tiles = new Tile[2 * resolution * resolution];
         shader.SetInt("Resolution", resolution);
         shader.SetFloat("maxHeight", maxHeight);

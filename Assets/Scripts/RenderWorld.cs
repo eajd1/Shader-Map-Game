@@ -7,7 +7,7 @@ public class RenderWorld : MonoBehaviour
 {
     // RenderWorld runs the shaders the display the world
 
-    [SerializeField] private ComputeShader renderShader;
+    private ComputeShader renderShader;
     [Range(0, 1)]
     [SerializeField] private float countryOpacity;
     private Resolution screenResolution;
@@ -26,6 +26,7 @@ public class RenderWorld : MonoBehaviour
         renderTexture.Create();
 
         // Initialise renderShader
+        renderShader = Resources.Load<ComputeShader>("RenderPlane");
         int kernelIndex = renderShader.FindKernel("CSMain");
         renderShader.SetTexture(kernelIndex, "Result", renderTexture);
         renderShader.SetInts("ScreenResolution", new int[] { screenResolution.width, screenResolution.height });

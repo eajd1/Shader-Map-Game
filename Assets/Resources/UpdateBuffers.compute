@@ -1,0 +1,21 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct Tile
+{
+    float height;
+    int owner;
+    uint ocean;
+};
+
+RWStructuredBuffer<Tile> Changes;
+int Resolution;
+RWStructuredBuffer<Tile> Tiles;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int index = (int)(id.x * Resolution + id.y);
+    Tiles[index].height = Changes[index].height;
+    Tiles[index].owner = Changes[index].owner;
+}

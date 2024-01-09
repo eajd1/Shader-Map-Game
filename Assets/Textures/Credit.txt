@@ -1,0 +1,2 @@
+Landmask: https://ian.macky.net/pat/landmask/index.html
+heightmap: https://sbcode.net/topoearth/gebco-heightmap-21600x10800/

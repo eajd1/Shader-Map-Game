@@ -17,14 +17,9 @@ public class World : MonoBehaviour
     [Range(128, 8192)]
     [SerializeField] private int resolution;
     [SerializeField] private Texture2D heightmap;
-    [SerializeField] private Texture2D sealevelmask;
-    [SerializeField] private float maskThreshold;
+    [SerializeField] private Texture2D detailMap;
     [SerializeField] private float maxHeight;
     [SerializeField] private float minHeight;
-    [SerializeField] private ComputeShader simulationShader;
-    [SerializeField] private ComputeShader updateAllShader; // The shader for updating the whole screen of changes
-    [SerializeField] private ComputeShader updateSingleShader; // The shader for updating a single change
-    [SerializeField] private ComputeShader loadShader;
 
     private Tile[] tiles; // Tiles of the world
     private WorldBufferData bufferData;
@@ -40,8 +35,6 @@ public class World : MonoBehaviour
     public Tile[] Tiles { get { return tiles; } }
     public Country[] Countries { get { return countries; } }
     public WorldBufferData Buffers { get { return bufferData; } }
-    public ComputeShader UpdateAllShader { get { return updateAllShader; } }
-    public ComputeShader UpdateSingleShader { get { return updateSingleShader; } }
 
     public void ToggleSimulation() => simulate = !simulate;
     public Country GetCountry(int index) => countries[index];
@@ -288,8 +281,8 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tiles = LoadPlanet.GenerateEarthShader(loadShader, resolution, maxHeight, minHeight, heightmap, sealevelmask);
-        //tiles = LoadPlanet.GenerateEarth(resolution, maxHeight, minHeight, heightmap, sealevelmask, maskThreshold);
+        tiles = LoadPlanet.GenerateEarthShader(resolution, maxHeight, minHeight, heightmap, detailMap);
+        //tiles = LoadPlanet.GenerateEarth(resolution, maxHeight, minHeight, heightmap, detailMap, 0.5f);
         //tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
         LoadCountries();
 

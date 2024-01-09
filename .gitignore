@@ -59,3 +59,6 @@ sysinfo.txt
 crashlytics-build.properties
 
 /[Aa]ssets/saves
+/[Aa]ssets/saves.meta
+/[Aa]ssets/Textures/Large
+/[Aa]ssets/Textures/Large.meta
