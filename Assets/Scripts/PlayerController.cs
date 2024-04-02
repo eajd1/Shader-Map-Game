@@ -98,11 +98,11 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.M))
         {
-            World.Instance.LoadWorld("test");
+            World.Instance.LoadWorld("8192");
         }
         if (Input.GetKeyDown(KeyCode.N))
         {
-            World.Instance.SaveWorld("test");
+            World.Instance.SaveWorld("8192");
         }
     }
 

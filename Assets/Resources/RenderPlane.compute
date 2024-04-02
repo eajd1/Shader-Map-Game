@@ -85,7 +85,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     int2 coord = CalculateCoord(id.xy);
     if (coord.y >= Resolution || coord.y < 0)
     {
-        Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+        Result[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
         return;
     }
     
@@ -101,14 +101,17 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         lake = true;
 
     float3 terrainColour;
-    float v = sqrt(height / HighestPoint) * 0.8 + 0.2;
     if (ocean)
-        //terrainColour = float3(0.0, 0.0, (1 - (height / -DeepestPoint)));
-        terrainColour = float3(0.0, 0.0, 0.5);
-    else if (lake)
-        terrainColour = float3(0.0, v * 0.5, v);
+        terrainColour = float3(0.0, 0.0, (1 - (height / LowestPoint)));
+        //terrainColour = float3(0.0, 0.0, 0.5);
     else
-        terrainColour = float3(0.0, v, 0.0);
+    {
+        float v = sqrt(abs(height) / HighestPoint) * 0.8 + 0.2;
+        if (lake)
+            terrainColour = float3(0.0, v * 0.5, v);
+        else
+            terrainColour = float3(0.0, v, 0.0);
+    }
 
     switch(MapMode)
     {

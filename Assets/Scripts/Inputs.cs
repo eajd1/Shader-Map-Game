@@ -13,4 +13,5 @@ public class Inputs
     public static string Scroll = "Mouse ScrollWheel";
     public static string Space = "Jump";
     public static string ESC = "Cancel";
+    public static string Shift = "Shift";
 }

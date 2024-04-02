@@ -517,15 +517,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7fe9c7e1f071f1458d88513dd8a3e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 8192
+  resolution: 256
   heightmap: {fileID: 2800000, guid: 57e73643d047dbf459afd7237d7a23e4, type: 3}
   detailMap: {fileID: 2800000, guid: ea0692087321c20439a2136ce7fe3165, type: 3}
   maxHeight: 5000
   minHeight: -5000
-  simulationShader: {fileID: 7200000, guid: 79c55f0e571e6ae47b57c5659ebb7b95, type: 3}
-  updateAllShader: {fileID: 7200000, guid: fc65cbc905158cb43952a72e50d71125, type: 3}
-  updateSingleShader: {fileID: 7200000, guid: a5f58718fc19940469cd69aa5c7ed838, type: 3}
-  loadShader: {fileID: 7200000, guid: cad1cd7d50428e54292ef256225a0c64, type: 3}
 --- !u!1 &533782126
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,7 +979,7 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
+  m_ClearFlags: 4
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
@@ -1005,11 +1001,11 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 100
+  near clip plane: 1
+  far clip plane: 10
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 1
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1022,7 +1018,7 @@ Camera:
   m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
+  m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
 --- !u!4 &963194228
@@ -1054,6 +1050,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementMultiplier: 200
+  fasterMovementMultiplier: 500
   zoomMultiplier: 100
   zoomCurve:
     serializedVersion: 2
@@ -1105,7 +1102,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f254f847cfe96749a10e6337a04d0b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderShader: {fileID: 7200000, guid: 0c3df78279bdab745b20090c84df1513, type: 3}
   countryOpacity: 0.5
 --- !u!114 &963194233
 MonoBehaviour:

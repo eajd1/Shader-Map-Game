@@ -62,9 +62,10 @@ public class LoadPlanet
         return texture.GetPixel((int)(u * texture.width), (int)(v * texture.height));
     }
 
-    public static Tile[] GeneratePlanet(int resolution, float maxDepth, float maxHeight)
+    public static Tile[] GeneratePlanet(int resolution, float maxDepth, float maxHeight, int seed)
     {
-        Random.InitState(resolution);
+        Random.InitState(seed);
+
         Tile[] tiles = new Tile[2 * resolution * resolution];
         for (int x = 0; x < 2 * resolution; x++)
         {
@@ -73,17 +74,16 @@ public class LoadPlanet
                 int index = x * resolution + y;
                 Vector3 pointOnSphere = PointOnSphere(resolution, x, y);
 
-                // https://stackoverflow.com/questions/6555076/how-can-i-generate-perlin-noise-on-a-spherical-surface
-                // https://www.youtube.com/watch?v=lctXaT9pxA0
+                float randNum = Random.Range(2 * World.Instance.WorldResolution, 20 * World.Instance.WorldResolution);
+                int octaves = 10;
                 float totalNoise = 0;
-                float frequency = 1;
-                float amplitude = 1;
-                int octaves = 20;
-                for (int o = 0; o < octaves; o++)
+                for (int o = 1; o <= octaves; o++)
                 {
-                    totalNoise += Perlin3D(pointOnSphere * frequency) * amplitude;
-                    frequency *= 2;
-                    amplitude *= 0.5f;
+                    float frequency = octaves * 2 / o;
+                    float xy = Mathf.PerlinNoise((pointOnSphere.x * 0.3f + randNum) / frequency, (pointOnSphere.y * 0.3f + randNum) / frequency);
+                    float yz = Mathf.PerlinNoise((pointOnSphere.y * 0.3f + randNum) / frequency, (pointOnSphere.z * 0.3f + randNum) / frequency);
+                    float zx = Mathf.PerlinNoise((pointOnSphere.z * 0.3f + randNum) / frequency, (pointOnSphere.x * 0.3f + randNum) / frequency);
+                    totalNoise += ((xy + yz + zx) / 3f) / o;
                 }
 
                 if (totalNoise < 0)
@@ -107,15 +107,6 @@ public class LoadPlanet
         float lat = (y / (float)resolution - 0.5f) * Mathf.PI; // -0.5PI to 0.5PI
         float lon = x / (float)resolution * Mathf.PI; // 0 to 2PI
 
-        return new Vector3(Mathf.Cos(lat) * Mathf.Cos(lon), Mathf.Cos(lat) * Mathf.Sin(lon), Mathf.Sin(lat));
-    }
-
-    private static float Perlin3D(Vector3 point)
-    {
-        point += new Vector3(200, 200, 200);
-        float xy = Mathf.PerlinNoise(point.x, point.y);
-        float xz = Mathf.PerlinNoise(point.x, point.z);
-        float yz = Mathf.PerlinNoise(point.y, point.z);
-        return (xy + xz + yz) / 3f * 2 - 1;
+        return new Vector3(Mathf.Cos(lat) * Mathf.Cos(lon), Mathf.Cos(lat) * Mathf.Sin(lon), Mathf.Sin(lat)).normalized;
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlaneCameraControls : CameraControls
 {
     [SerializeField] private float movementMultiplier = 1;
+    [SerializeField] private float fasterMovementMultiplier = 10;
     [SerializeField] private float zoomMultiplier = 1;
     [SerializeField] private AnimationCurve zoomCurve;
     [SerializeField] private float maxZoom = 0.01f;
@@ -23,11 +24,17 @@ public class PlaneCameraControls : CameraControls
     void Update()
     {
         // Camera Inputs
+        float movementSpeed = movementMultiplier;
+        if (Input.GetButton(Inputs.Shift))
+        {
+            movementSpeed = fasterMovementMultiplier;
+        }
+
         // Horizontal
-        float horizontal = Input.GetAxis(Inputs.Horizontal) * movementMultiplier * Time.deltaTime;
+        float horizontal = Input.GetAxis(Inputs.Horizontal) * movementSpeed * Time.deltaTime;
 
         // Vertical
-        float vertical = Input.GetAxis(Inputs.Vertical) * movementMultiplier * Time.deltaTime;
+        float vertical = Input.GetAxis(Inputs.Vertical) * movementSpeed * Time.deltaTime;
 
         // Zoom
         zoom += -Input.GetAxis(Inputs.Scroll) * zoomMultiplier * zoomCurve.Evaluate(zoom) * Mathf.Clamp(Time.deltaTime, 0, 0.016f);

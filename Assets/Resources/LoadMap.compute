@@ -60,6 +60,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     if (mask.r < 0.1 && mask.g < 0.1 && mask.b > 0.9)
     {
         // Ocean
+        height = heightmapValue;
         details = details | 2147483648;
     }
     if (mask.r > 0.9 && mask.g < 0.1 && mask.b < 0.1)

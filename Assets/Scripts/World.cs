@@ -283,7 +283,7 @@ public class World : MonoBehaviour
     {
         tiles = LoadPlanet.GenerateEarthShader(resolution, maxHeight, minHeight, heightmap, detailMap);
         //tiles = LoadPlanet.GenerateEarth(resolution, maxHeight, minHeight, heightmap, detailMap, 0.5f);
-        //tiles = LoadPlanet.GeneratePlanet(resolution, maxDepth, maxHeight);
+        //tiles = LoadPlanet.GeneratePlanet(resolution, minHeight, maxHeight, 1);
         LoadCountries();
 
         players = new List<PlayerController>();
