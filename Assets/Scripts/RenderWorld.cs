@@ -37,6 +37,7 @@ public class RenderWorld : MonoBehaviour
     private IEnumerator AfterStart()
     {
         yield return new WaitForEndOfFrame();
+        // Buffers need to be updated after start because they might not have been created by the world yet
         UpdateBuffers();
     }
 
@@ -56,7 +57,7 @@ public class RenderWorld : MonoBehaviour
         renderShader.SetFloat("HighestPoint", World.Instance.MaxHeight);
         renderShader.SetFloat("LowestPoint", World.Instance.MinHeight);
         renderShader.SetFloat("CountryOpacity", countryOpacity);
-        Vector2 cameraPos = playerController.GetControls().GetUV();
+        Vector2 cameraPos = playerController.GetControls().GetCameraUV();
         renderShader.SetFloats("CameraPosition", new float[] { cameraPos.x, cameraPos.y });
         renderShader.SetFloat("Zoom", playerController.GetControls().GetZoom());
 

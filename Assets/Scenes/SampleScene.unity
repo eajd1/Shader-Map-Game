@@ -953,10 +953,10 @@ GameObject:
   - component: {fileID: 963194226}
   - component: {fileID: 963194230}
   - component: {fileID: 963194231}
-  - component: {fileID: 963194232}
+  - component: {fileID: 963194234}
   - component: {fileID: 963194233}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: Player
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1090,19 +1090,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b7ec60cb2acb8849b21d83f18f00101, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &963194232
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f254f847cfe96749a10e6337a04d0b1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  countryOpacity: 0.5
 --- !u!114 &963194233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1120,6 +1107,19 @@ MonoBehaviour:
   canvas: {fileID: 191998061}
   countryNamesParent: {fileID: 533782127}
   textPrefab: {fileID: 7759775672656411292, guid: 2cc6b7218f5669d41adbb46137c4fd81, type: 3}
+--- !u!114 &963194234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f254f847cfe96749a10e6337a04d0b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  countryOpacity: 0.5
 --- !u!1 &971172686
 GameObject:
   m_ObjectHideFlags: 0

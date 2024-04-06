@@ -77,11 +77,44 @@ public class PlaneCameraControls : CameraControls
         return zoom;
     }
 
-    public override Vector2 GetUV()
+    public override Vector2 GetCameraUV()
     {
         // -1 to 1 (technically not uv i know)
         float u = (transform.position.x / maxMovement) * 2 - 1;
         float v = (transform.position.y / maxMovement) * 2 - 1;
         return new Vector2(u, v);
+    }
+
+    public override Vector2 GetCursorUV()
+    {
+        Vector3 mouseUV = Input.mousePosition;
+        mouseUV.x = (mouseUV.x / Screen.width) * 2 - 1;
+        mouseUV.y = (mouseUV.y / Screen.height) * 2 - 1;
+
+        Vector2 UV = new Vector2(mouseUV.x, mouseUV.y);
+        UV.Scale(new Vector2(zoom, zoom));
+        UV += GetCameraUV();
+
+        while (UV.x > 1)
+        {
+            UV.x = -1 + (UV.x - 1);
+        }
+        while (UV.x < -1)
+        {
+            UV.x = 1 + (UV.x + 1);
+        }
+        if (UV.y > 1)
+        {
+            UV.y = 1;
+        }
+        if (UV.y < -1)
+        {
+            UV.y = -1;
+        }
+
+        UV.x = (UV.x + 1) / 2;
+        UV.y = (UV.y + 1) / 2;
+
+        return UV; // actually 0 to 1
     }
 }

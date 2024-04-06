@@ -88,7 +88,7 @@ public class UIManager : MonoBehaviour
             midpoint.y /= World.Instance.WorldResolution;
             midpoint.x = midpoint.x - 0.5f;
             midpoint.y = midpoint.y - 0.5f;
-            midpoint -= player.GetControls().GetUV() / 2f;
+            midpoint -= player.GetControls().GetCameraUV() / 2f;
             midpoint /= player.GetControls().GetZoom();
             midpoint.x *= Screen.currentResolution.width;
             midpoint.y *= Screen.currentResolution.height;

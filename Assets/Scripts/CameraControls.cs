@@ -6,5 +6,7 @@ public abstract class CameraControls : MonoBehaviour
 {
     public abstract float GetZoom();
 
-    public abstract Vector2 GetUV();
+    public abstract Vector2 GetCameraUV();
+
+    public abstract Vector2 GetCursorUV();
 }

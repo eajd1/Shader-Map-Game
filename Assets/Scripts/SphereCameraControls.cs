@@ -69,11 +69,16 @@ public class SphereCameraControls : CameraControls
         return zoom;
     }
 
-    public override Vector2 GetUV()
+    public override Vector2 GetCameraUV()
     {
         // -1 to 1 (technically not uv i know)
         float u = Mathf.Atan2(transform.position.z, transform.position.x) / Mathf.PI;
         float v = (Mathf.Asin(transform.position.y) / Mathf.PI * 2);
         return new Vector2(u, v);
+    }
+
+    public override Vector2 GetCursorUV()
+    {
+        throw new System.NotImplementedException();
     }
 }
