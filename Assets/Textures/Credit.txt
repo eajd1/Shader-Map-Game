@@ -1,2 +1,3 @@
 Landmask: https://ian.macky.net/pat/landmask/index.html
 heightmap: https://sbcode.net/topoearth/gebco-heightmap-21600x10800/
+https://www.shadedrelief.com/natural3/pages/extra.html

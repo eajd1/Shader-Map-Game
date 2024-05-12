@@ -517,7 +517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7fe9c7e1f071f1458d88513dd8a3e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 256
+  resolution: 1024
   heightmap: {fileID: 2800000, guid: 57e73643d047dbf459afd7237d7a23e4, type: 3}
   detailMap: {fileID: 2800000, guid: ea0692087321c20439a2136ce7fe3165, type: 3}
   maxHeight: 5000
@@ -654,10 +654,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9883bc118c7054f43a5a0542a81f1ad5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numPoints: 36
+  numPoints: 1000
   shader: {fileID: 7200000, guid: 9fc69e92b1d3ba349911e40f4a708a23, type: 3}
   gizmos: 1
-  test: {x: 0, y: 1, z: 0}
+  test: {x: 0, y: 0, z: 1}
+  testIndex: 0
 --- !u!114 &566036672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -979,8 +980,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 4
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1120,6 +1121,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   countryOpacity: 0.5
+  landTexture: {fileID: 2800000, guid: 9459877b937e964459acf89f50ac452f, type: 3}
+  worldNormalMap: {fileID: 2800000, guid: 13b56cea8e1dbbb44a67c706daa056f5, type: 3}
+  sunSpeed: 1
+  sunVecticalOffset: 0.1
+  sunColour: {r: 1, g: 1, b: 0.8627451, a: 0}
+  sunIntensity: 1
+  ambientColour: {r: 1, g: 1, b: 1, a: 0}
+  ambientIntensity: 0.2
+  normalMultiplier: 1
 --- !u!1 &971172686
 GameObject:
   m_ObjectHideFlags: 0

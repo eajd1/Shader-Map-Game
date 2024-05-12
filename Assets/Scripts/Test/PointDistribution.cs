@@ -11,6 +11,8 @@ public class PointDistribution : MonoBehaviour
     [SerializeField] private ComputeShader shader;
     [SerializeField] private bool gizmos;
     [SerializeField] private Vector3 test;
+    [Range(0, 100)]
+    [SerializeField] private int testIndex;
 
     private Vector3[] points;
     private float[] colours;
@@ -92,14 +94,23 @@ public class PointDistribution : MonoBehaviour
     {
         if (gizmos)
         {
+            int index = 0;
             foreach (Vector3 point in points)
             {
-                Gizmos.DrawSphere(point, 0.01f);
+                if (index == testIndex)
+                {
+                    Gizmos.DrawSphere(point, 0.02f);
+                }
+                else
+                {
+                    Gizmos.DrawSphere(point, 0.01f);
+                }
+                index++;
             }
 
             Gizmos.DrawSphere(test.normalized, 0.02f);
 
-            Vector3 closestPoint = points[LinearSearch()];
+            Vector3 closestPoint = points[UVSearch()];
 
             Gizmos.DrawLine(test.normalized, closestPoint);
         }
@@ -125,6 +136,14 @@ public class PointDistribution : MonoBehaviour
         int index = (int)((test.normalized.y + 1) / 2 * numPoints);
         //float theta = Mathf.Acos(test.normalized.x);
         return index;// + (int)(theta);
+    }
+
+    private int UVSearch()
+    {
+        Vector3 p = test.normalized;
+        float u = Mathf.Atan2(p.x, p.z) / (2 * Mathf.PI) + 0.5f;
+        float v = Mathf.Asin(p.y) / Mathf.PI + 0.5f;
+        return 0;
     }
 
     private void OnApplicationQuit()
@@ -159,24 +178,24 @@ public class PointDistribution : MonoBehaviour
             colours[i] = (float)i / numPoints;
         }
 
-        colours = new float[(int)(Mathf.PI * numPoints * numPoints) - numPoints];
-        points = new Vector3[(int)(Mathf.PI * numPoints * numPoints) - numPoints];
+        //colours = new float[(int)(Mathf.PI * numPoints * numPoints) - numPoints];
+        //points = new Vector3[(int)(Mathf.PI * numPoints * numPoints) - numPoints];
 
-        int index = 0;
-        for (int y = 0; y < numPoints * 2; y++)
-        {
-            int width = Mathf.Min((int)(GetWidth((y - numPoints) / (float)numPoints) * 2 * numPoints), 2 * numPoints - 1);
-            for (int x = 0; x < width; x++)
-            {
-                colours[index] = index / (float)colours.Length;
+        //int index = 0;
+        //for (int y = 0; y < numPoints * 2; y++)
+        //{
+        //    int width = Mathf.Min((int)(GetWidth((y - numPoints) / (float)numPoints) * 2 * numPoints), 2 * numPoints - 1);
+        //    for (int x = 0; x < width; x++)
+        //    {
+        //        colours[index] = index / (float)colours.Length;
 
-                float yPos = (y - numPoints) / (float)numPoints;
-                float xPos = Mathf.Cos(x / (float)width * 2 * Mathf.PI) * GetWidth(yPos);
-                float zPos = Mathf.Sin(x / (float)width * 2 * Mathf.PI) * GetWidth(yPos);
-                points[index] = new Vector3(xPos, yPos, zPos);
-                index++;
-            }
-        }
+        //        float yPos = (y - numPoints) / (float)numPoints;
+        //        float xPos = Mathf.Cos(x / (float)width * 2 * Mathf.PI) * GetWidth(yPos);
+        //        float zPos = Mathf.Sin(x / (float)width * 2 * Mathf.PI) * GetWidth(yPos);
+        //        points[index] = new Vector3(xPos, yPos, zPos);
+        //        index++;
+        //    }
+        //}
         //Debug.Log(index);
         //Debug.Log(points.Length);
     }

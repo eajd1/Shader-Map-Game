@@ -16,8 +16,10 @@ public class PlayerController : MonoBehaviour
     private Country country;
     private UIManager uiManager;
 
-    public Vector2Int CursorPosition { get { return cursorPosition; } }
+    private WorldData worldData;
 
+    public WorldBufferData Buffers { get { return worldData.bufferData; } }
+    public Vector2Int CursorPosition { get { return cursorPosition; } }
     public MapMode GetMapMode() => mapMode;
     public CameraControls GetControls() => controls;
     public void SelectCountry(string countryName)
