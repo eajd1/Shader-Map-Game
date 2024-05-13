@@ -152,10 +152,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         }
     }
 
+    bool useLighting = true;
     switch(MapMode)
     {
         case 0: // Terrain
-            // Nothing to do yet
+            // Nothing to do yet because terrain is default
             break;
 
         case 1: // Ocean
@@ -189,35 +190,56 @@ void CSMain (uint3 id : SV_DispatchThreadID)
                 sameOwnerNeighbours += 1;
 
             if (sameOwnerNeighbours < 4)
+            {
                 tileColour = countryColour;
+                useLighting = false;
+            }
             break;
         
         case 4: //Simple Country
+            useLighting = false;
             if (!ocean)
                 tileColour = countryColour;
             break;
     }
     
-    float2 uv = coord / float2(2 * Resolution, Resolution);
-    float3 pointOnSphere = UVToPointOnSphere(uv);
-    float3 normal = pointOnSphere;
-    if (!ocean)
+    if (useLighting)
     {
+        float2 uv = coord / float2(2 * Resolution, Resolution);
+        float3 pointOnSphere = UVToPointOnSphere(uv);
+        float3 normal = pointOnSphere;
+        if (!ocean)
+        {
         // Find tangents to the sphere to base the normal directions on
-        float3 normalRight = cross(pointOnSphere, float3(0.0, 1.0, 0.0));
-        float3 normalUp = cross(pointOnSphere, normalRight); // This is technically inverted but the normalmap has y going to "down" too
+            float3 normalRight = cross(pointOnSphere, float3(0.0, 1.0, 0.0));
+            float3 normalUp = cross(normalRight, pointOnSphere);
     
-        float3 normalMapValue = WorldNormalMap.SampleLevel(samplerWorldNormalMap, uv, 0).rgb * normalMultiplier;
+            float3 normalMapValue = (WorldNormalMap.SampleLevel(samplerWorldNormalMap, uv, 0).rgb * normalMultiplier * 2.0) - float3(1.0, 1.0, 1.0);
         // Normal is a sphere with the components from the texture
-        normal = normalize(pointOnSphere + normalRight * normalMapValue.x + normalUp * normalMapValue.y);
+            normal = normalize(pointOnSphere + normalRight * normalMapValue.x + normalUp * normalMapValue.y);
+        }
+    
+        float diffuse = dot(normal, SunDirection);
+        float3 sunLight = pow(diffuse, 0.5) * SunColour * SunIntensity;
+    
+        float3 ambientLight = AmbientColour * AmbientIntensity;
+    
+        float3 light = max(sunLight, ambientLight);
+    
+        tileColour = tileColour * light;
     }
+    Result[id.xy] = float4(tileColour, 1.0);
     
-    float diffuse = dot(normal, SunDirection);
-    float3 sunLight = pow(diffuse, 0.5) * SunColour * SunIntensity;
-    
-    float3 ambientLight = AmbientColour * AmbientIntensity;
-    
-    float3 light = max(sunLight, ambientLight);
-    
-    Result[id.xy] = float4(tileColour * light, 1.0);
+    // If zoomed in fade in tile border lines
+    if (Zoom < 0.1)
+    {
+        if (GetPositionInBuffer(CalculateCoord(id.xy + uint2(1, 0))) != pos)
+        {
+            Result[id.xy] = float4(lerp(float3(0.5, 0.5, 0.5), tileColour, Zoom * 10), 1.0);
+        }
+        if (GetPositionInBuffer(CalculateCoord(id.xy + uint2(0, 1))) != pos)
+        {
+            Result[id.xy] = float4(lerp(float3(0.5, 0.5, 0.5), tileColour, Zoom * 10), 1.0);
+        }
+    }
 }
