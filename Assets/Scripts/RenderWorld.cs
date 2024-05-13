@@ -90,7 +90,7 @@ public class RenderWorld : MonoBehaviour
         renderShader.SetFloat("SunIntensity", sunIntensity);
         renderShader.SetFloat("AmbientIntensity", ambientIntensity);
         renderShader.SetFloats("AmbientColour", new float[] { ambientColour.r, ambientColour.g, ambientColour.b });
-        renderShader.SetFloat("normalMultiplier", normalMultiplier);
+        renderShader.SetFloat("NormalMultiplier", normalMultiplier);
 
         int kernelIndex = renderShader.FindKernel("CSMain");
         if (BuffersExist())
