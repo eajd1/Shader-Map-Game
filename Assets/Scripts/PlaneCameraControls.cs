@@ -88,6 +88,7 @@ public class PlaneCameraControls : CameraControls
     public override Vector2 GetCursorUV()
     {
         Vector3 mouseUV = Input.mousePosition;
+        mouseUV.x *= Screen.width / (float)Screen.height / 2.0f;
         mouseUV.x = (mouseUV.x / Screen.width) * 2 - 1;
         mouseUV.y = (mouseUV.y / Screen.height) * 2 - 1;
 
