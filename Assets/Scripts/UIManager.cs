@@ -30,7 +30,21 @@ public abstract class UIManager : MonoBehaviour
         }
     }
 
-    public abstract bool CursorInCollider();
+    [SerializeField] protected Transform canvas;
+
+    public bool CursorInCollider()
+    {
+        List<RectTransform> rects = new List<RectTransform>();
+        rects = GetRects(canvas, rects);
+        foreach (RectTransform rectTransform in rects)
+        {
+            if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)) && LayerMask.NameToLayer("Ignore Cursor") != rectTransform.gameObject.layer)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     protected List<RectTransform> GetRects(Transform parent, List<RectTransform> rects)
     {

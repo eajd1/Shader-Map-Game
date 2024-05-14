@@ -8,7 +8,6 @@ public class GameUI : UIManager
 {
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private TMP_Dropdown dropdown;
-    [SerializeField] private Transform canvas;
     [SerializeField] private Transform countryNamesParent;
     [SerializeField] private GameObject textPrefab;
 
@@ -18,20 +17,6 @@ public class GameUI : UIManager
     public void SelectCountry(string unused)
     {
         player.SelectCountry(dropdown.options.ToArray()[dropdown.value].text);
-    }
-
-    override public bool CursorInCollider()
-    {
-        List<RectTransform> rects = new List<RectTransform>();
-        rects = GetRects(canvas, rects);
-        foreach (RectTransform rectTransform in rects)
-        {
-            if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)) && LayerMask.NameToLayer("Ignore Cursor") != rectTransform.gameObject.layer)
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     // Start is called before the first frame update
