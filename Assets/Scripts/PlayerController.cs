@@ -78,7 +78,7 @@ public class PlayerController : MonoBehaviour
             World.Instance.ToggleSimulation();
         }
 
-        if (Input.GetButton(Inputs.LMB) && !uiManager.CursorInCollider())
+        if (Input.GetButton(Inputs.LMB) && (uiManager == null || !uiManager.CursorInCollider()))
         {
             World.Instance.SetOwner(GetIndex(), country.ID);
         }

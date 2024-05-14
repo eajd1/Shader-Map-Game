@@ -73,21 +73,9 @@ int2 GetCoord(int2 coord, int2 offset)
     return int2(x, y);
 }
 
-uint GetPositionInBuffer(int2 coord)
+uint GetBufferIndex(int2 coord)
 {
     return coord.x * Resolution + coord.y;
-}
-
-float WindX(float lat)
-{
-    if (pow(3.0 * lat - 1.0, 3.0) < 1.0)
-    {
-        return -pow(3.0 * lat - 1.0, 3.0);
-    }
-    else
-    {
-        return -pow(3.0 * lat - 3.0, 3.0);
-    }
 }
 
 // Returns x between 0 and 2 * resolution and y between 0 and resolution
@@ -95,10 +83,14 @@ float2 CalculateCoord(uint2 pixel)
 {
     uint2 screenResolution = uint2(0, 0);
     Result.GetDimensions(screenResolution.x, screenResolution.y);
-    float2 uv = (pixel.xy / (float2) screenResolution) * 2 - 1;
+    float2 uv = (pixel.xy / (float2) screenResolution);
+    // Get the correct ratio of 2:1
+    uv.x *= (float(screenResolution.x) / float(screenResolution.y)) / 2.0;
+    uv = uv * 2 - 1;
     uv *= Zoom;
     uv += CameraPosition;
 
+    // Wrap x coord
     if (uv.x > 1)
         uv.x = -1 + (uv.x - 1);
     if (uv.x < -1)
@@ -120,21 +112,26 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float2 coord = CalculateCoord(id.xy);
     if (coord.y >= Resolution || coord.y < 0)
     {
+        // Out of world boundary
         Result[id.xy] = float4(0.0, 0.0, 0.0, 0.0);
         return;
     }
     
+    // the uv (0-1) of a pixel within a single tile
     float2 coordUV = coord - int2(coord.x, coord.y);
+    // index in the world buffer of this tile
+    uint index = GetBufferIndex(coord);
+
+    float height = Tiles[index].height;
+    uint countryID = Tiles[index].owner;
     
-    uint pos = GetPositionInBuffer(coord);
-    float height = Tiles[pos].height;
-    uint countryID = Tiles[pos].owner;
     float3 countryColour = CountryColours[countryID];
+    
     bool ocean = false;
-    if ((Tiles[pos].details >> 31) % 2 == 1)
+    if ((Tiles[index].details >> 31) % 2 == 1)
         ocean = true;
     bool lake = false;
-    if ((Tiles[pos].details >> 30) % 2 == 1)
+    if ((Tiles[index].details >> 30) % 2 == 1)
         lake = true;
 
     float3 tileColour;
@@ -182,13 +179,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             }
 
             int sameOwnerNeighbours = 0;
-            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(1, 0)))].owner == countryID)
+            if (Tiles[GetBufferIndex(GetCoord(coord, int2(1, 0)))].owner == countryID)
                 sameOwnerNeighbours += 1;
-            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(0, 1)))].owner == countryID)
+            if (Tiles[GetBufferIndex(GetCoord(coord, int2(0, 1)))].owner == countryID)
                 sameOwnerNeighbours += 1;
-            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(-1, 0)))].owner == countryID)
+            if (Tiles[GetBufferIndex(GetCoord(coord, int2(-1, 0)))].owner == countryID)
                 sameOwnerNeighbours += 1;
-            if (Tiles[GetPositionInBuffer(GetCoord(coord, int2(0, -1)))].owner == countryID)
+            if (Tiles[GetBufferIndex(GetCoord(coord, int2(0, -1)))].owner == countryID)
                 sameOwnerNeighbours += 1;
 
             if (sameOwnerNeighbours < 4)
@@ -238,11 +235,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     // If zoomed in fade in tile border lines
     if (Zoom < 0.1)
     {
-        if (GetPositionInBuffer(CalculateCoord(id.xy + uint2(1, 0))) != pos)
+        if (GetBufferIndex(CalculateCoord(id.xy + uint2(1, 0))) != index)
         {
             Result[id.xy] = float4(lerp(float3(0.5, 0.5, 0.5), tileColour, Zoom * 10), 1.0);
         }
-        if (GetPositionInBuffer(CalculateCoord(id.xy + uint2(0, 1))) != pos)
+        if (GetBufferIndex(CalculateCoord(id.xy + uint2(0, 1))) != index)
         {
             Result[id.xy] = float4(lerp(float3(0.5, 0.5, 0.5), tileColour, Zoom * 10), 1.0);
         }
