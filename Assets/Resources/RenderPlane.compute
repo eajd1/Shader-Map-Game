@@ -27,12 +27,14 @@ float CountryOpacity; // Opacity of the countries in country map mode
 
 float2 CameraPosition; // -1 to 1 on x and y
 float Zoom;
+
+// Lighting
+bool UseLighting;
 float3 SunDirection;
 float3 SunColour;
 float SunIntensity;
 float AmbientIntensity;
 float3 AmbientColour;
-
 float NormalMultiplier;
 
 static const float PI = 3.14159265f;
@@ -152,7 +154,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         }
     }
 
-    bool useLighting = true;
+    bool isLitMapmode = true;
     switch(MapMode)
     {
         case 0: // Terrain
@@ -192,18 +194,18 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             if (sameOwnerNeighbours < 4)
             {
                 tileColour = countryColour;
-                useLighting = false;
+                isLitMapmode = false;
             }
             break;
         
         case 4: //Simple Country
-            useLighting = false;
+            isLitMapmode = false;
             if (!ocean)
                 tileColour = countryColour;
             break;
     }
     
-    if (useLighting)
+    if (isLitMapmode && UseLighting)
     {
         float2 uv = coord / float2(2 * Resolution, Resolution);
         float3 pointOnSphere = UVToPointOnSphere(uv);

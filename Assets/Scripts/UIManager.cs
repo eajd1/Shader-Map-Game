@@ -4,38 +4,35 @@ using UnityEngine;
 using TMPro;
 using System.Linq;
 
-[RequireComponent(typeof(PlayerController))]
-public class UIManager : MonoBehaviour
+public abstract class UIManager : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI text;
-    [SerializeField] private TMP_Dropdown dropdown;
-    [SerializeField] private Transform canvas;
-    [SerializeField] private Transform countryNamesParent;
-    [SerializeField] private GameObject textPrefab;
-
-    private PlayerController player;
-    private RectTransform[] countryNames;
-
-    public void SelectCountry(string unused)
+    private static UIManager instance;
+    public static UIManager Instance
     {
-        player.SelectCountry(dropdown.options.ToArray()[dropdown.value].text);
-    }
-
-    public bool CursorInCollider()
-    {
-        List<RectTransform> rects = new List<RectTransform>();
-        rects = GetRects(canvas, rects);
-        foreach (RectTransform rectTransform in rects)
+        get
         {
-            if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)) && LayerMask.NameToLayer("Ignore Cursor") != rectTransform.gameObject.layer)
+            if (instance == null)
             {
-                return true;
+                Debug.LogError("No UIManager");
             }
+            return instance;
         }
-        return false;
+    }
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Debug.LogError("More than one UIManager in scene");
+        }
+        else
+        {
+            instance = this;
+        }
     }
 
-    private List<RectTransform> GetRects(Transform parent, List<RectTransform> rects)
+    public abstract bool CursorInCollider();
+
+    protected List<RectTransform> GetRects(Transform parent, List<RectTransform> rects)
     {
         foreach (Transform transform in parent)
         {
@@ -47,55 +44,5 @@ public class UIManager : MonoBehaviour
             GetRects(transform, rects);
         }
         return rects;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        player = GetComponent<PlayerController>();
-
-        dropdown.ClearOptions();
-        dropdown.AddOptions(World.Instance.Countries.Select(country => new TMP_Dropdown.OptionData(country.name)).ToList());
-
-        countryNames = new RectTransform[World.Instance.Countries.Length - 1];
-        for (int i = 0; i < countryNames.Length; i++)
-        {
-            countryNames[i] = Instantiate(textPrefab).GetComponent<RectTransform>();
-            countryNames[i].gameObject.layer = LayerMask.NameToLayer("Ignore Cursor");
-            countryNames[i].SetParent(countryNamesParent);
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        try
-        {
-            Vector2Int pos = player.CursorPosition;
-            text.text = $"X: {pos.x}\nY: {pos.y}\nHeight: {World.Instance.GetHeight(pos)}\nIndex: {pos.x * World.Instance.WorldResolution + pos.y}";
-        }
-        catch
-        {
-            return;
-        }
-
-        for (int i = 0; i < countryNames.Length; i++)
-        {
-            Country country = World.Instance.Countries[i + 1];
-
-            Vector2 midpoint = country.namePoint;
-            midpoint.x /= World.Instance.WorldResolution * 2;
-            midpoint.y /= World.Instance.WorldResolution;
-            midpoint.x = midpoint.x - 0.5f;
-            midpoint.y = midpoint.y - 0.5f;
-            midpoint -= player.GetControls().GetCameraUV() / 2f;
-            midpoint /= player.GetControls().GetZoom();
-            midpoint.x *= Screen.currentResolution.width;
-            midpoint.y *= Screen.currentResolution.height;
-
-            RectTransform rectTransform = countryNames[i];
-            rectTransform.anchoredPosition = midpoint;
-            rectTransform.GetComponent<TextMeshProUGUI>().text = country.name;
-        }
     }
 }

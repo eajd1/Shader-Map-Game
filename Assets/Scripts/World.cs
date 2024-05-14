@@ -5,10 +5,9 @@ using System.IO;
 using System.Threading;
 using System;
 
+// World contains all the data for the world and deals with updating it
 public class World : MonoBehaviour
 {
-    // World contains all the data for the world and deals with updating it
-
     // Singleton
     private static World instance;
     public static World Instance { get { if (instance == null) { Debug.LogError("No GameManager"); } return instance; } }
@@ -41,6 +40,7 @@ public class World : MonoBehaviour
     //public void AddChange(Change change) { lock (changes) { changes.Add(change); } }
     public float GetHeight(Vector2Int position) => tiles[position.x * resolution + position.y].height;
     public Country GetOwner(Vector2Int position) => countries[tiles[position.x * resolution + position.y].owner];
+    public PlayerController GetPlayer(int index) => players.ToArray()[index];
 
     public void AddPlayer(PlayerController player)
     {

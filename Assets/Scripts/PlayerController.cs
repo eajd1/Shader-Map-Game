@@ -4,11 +4,9 @@ using UnityEngine;
 
 [RequireComponent(typeof(CameraControls))]
 [RequireComponent(typeof(RenderWorld))]
-[RequireComponent(typeof(UIManager))]
+// PlayerController deals with all player input except for camera movement
 public class PlayerController : MonoBehaviour
 {
-    // PlayerController deals with all player input except for camera movement
-
     private CameraControls controls;
     private RenderWorld renderWorld;
     private MapMode mapMode;
@@ -16,9 +14,6 @@ public class PlayerController : MonoBehaviour
     private Country country;
     private UIManager uiManager;
 
-    private WorldData worldData;
-
-    public WorldBufferData Buffers { get { return worldData.bufferData; } }
     public Vector2Int CursorPosition { get { return cursorPosition; } }
     public MapMode GetMapMode() => mapMode;
     public CameraControls GetControls() => controls;
@@ -43,7 +38,7 @@ public class PlayerController : MonoBehaviour
     {
         controls = GetComponent<CameraControls>();
         renderWorld = GetComponent<RenderWorld>();
-        uiManager = GetComponent<UIManager>();
+        uiManager = UIManager.Instance;
         mapMode = MapMode.Terrain;
 
         country = World.Instance.GetCountry(0);

@@ -19,7 +19,8 @@ public class RenderWorld : MonoBehaviour
     [SerializeField] private Texture2D worldNormalMap;
 
     [Header("Lighting")]
-    [SerializeField] private float sunSpeed;
+    [SerializeField] private bool useLighting;
+    [Tooltip("Revolutions per Second")] [SerializeField] private float sunSpeed;
     [SerializeField] private float sunVecticalOffset;
     [SerializeField] private Color sunColour;
     [SerializeField] private float sunIntensity;
@@ -67,7 +68,8 @@ public class RenderWorld : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        sunAngle += Time.deltaTime * sunSpeed;
+        if (useLighting)
+            sunAngle += Time.deltaTime * Mathf.PI * sunSpeed;
         if (sunAngle > Mathf.PI * 2)
         {
             sunAngle = 0;
@@ -83,6 +85,7 @@ public class RenderWorld : MonoBehaviour
         renderShader.SetFloat("Zoom", playerController.GetControls().GetZoom());
 
         // Lighting
+        renderShader.SetBool("UseLighting", useLighting);
         Vector3 sunDirection = new Vector3(Mathf.Sin(sunAngle), sunVecticalOffset, Mathf.Cos(sunAngle));
         sunDirection = sunDirection.normalized;
         renderShader.SetFloats("SunDirection", new float[] { sunDirection.x, sunDirection.y, sunDirection.z });
