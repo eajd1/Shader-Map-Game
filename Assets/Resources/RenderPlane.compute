@@ -84,10 +84,10 @@ float2 CalculateCoord(uint2 pixel)
     uint2 screenResolution = uint2(0, 0);
     Result.GetDimensions(screenResolution.x, screenResolution.y);
     float2 uv = (pixel.xy / (float2) screenResolution);
-    // Get the correct ratio of 2:1
-    uv.x *= (float(screenResolution.x) / float(screenResolution.y)) / 2.0;
     uv = uv * 2 - 1;
     uv *= Zoom;
+    // Get the correct ratio of 2:1
+    uv.x *= (float(screenResolution.x) / float(screenResolution.y)) / 2.0;
     uv += CameraPosition;
 
     // Wrap x coord

@@ -32,12 +32,14 @@ public abstract class UIManager : MonoBehaviour
 
     [SerializeField] protected Transform canvas;
 
+    // Checks if the Cursor is in a UI Element that doesn't have the Ignore Cursor layer
     public bool CursorInCollider()
     {
         List<RectTransform> rects = new List<RectTransform>();
         rects = GetRects(canvas, rects);
         foreach (RectTransform rectTransform in rects)
         {
+            // Ignore Cursor layer means that the UI doesn't trigger this check
             if (rectTransform.rect.Contains(rectTransform.InverseTransformPoint(Input.mousePosition)) && LayerMask.NameToLayer("Ignore Cursor") != rectTransform.gameObject.layer)
             {
                 return true;
@@ -46,7 +48,7 @@ public abstract class UIManager : MonoBehaviour
         return false;
     }
 
-    protected List<RectTransform> GetRects(Transform parent, List<RectTransform> rects)
+    private List<RectTransform> GetRects(Transform parent, List<RectTransform> rects)
     {
         foreach (Transform transform in parent)
         {
