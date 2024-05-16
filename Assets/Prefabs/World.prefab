@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7fe9c7e1f071f1458d88513dd8a3e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 1024
+  resolution: 2048
   heightmap: {fileID: 2800000, guid: 57e73643d047dbf459afd7237d7a23e4, type: 3}
   detailMap: {fileID: 2800000, guid: ea0692087321c20439a2136ce7fe3165, type: 3}
   maxHeight: 5000

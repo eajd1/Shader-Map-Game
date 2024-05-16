@@ -54,7 +54,7 @@ public class WorldBufferData
         updateSingleShader.SetInt("PositionY", y);
         updateSingleShader.SetBuffer(kernelIndex, "Tiles", tileBuffer);
 
-        updateSingleShader.Dispatch(kernelIndex, 2 * resolution, resolution, 1);
+        updateSingleShader.Dispatch(kernelIndex, 1, 1, 1);
         buffer.Release();
     }
 

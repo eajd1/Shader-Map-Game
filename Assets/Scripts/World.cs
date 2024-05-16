@@ -10,7 +10,7 @@ public class World : MonoBehaviour
 {
     // Singleton
     private static World instance;
-    public static World Instance { get { if (instance == null) { Debug.LogError("No GameManager"); } return instance; } }
+    public static World Instance { get { if (instance == null) { Debug.LogError("No World"); } return instance; } }
     private void Awake() { if (instance != null && instance != this) { Destroy(this); } else { instance = this; } }
 
     [Range(128, 8192)]
@@ -38,9 +38,17 @@ public class World : MonoBehaviour
     public void ToggleSimulation() => simulate = !simulate;
     public Country GetCountry(int index) => countries[index];
     //public void AddChange(Change change) { lock (changes) { changes.Add(change); } }
+    public Tile GetTile(Vector2Int position) => tiles[position.x * resolution + position.y];
     public float GetHeight(Vector2Int position) => tiles[position.x * resolution + position.y].height;
     public Country GetOwner(Vector2Int position) => countries[tiles[position.x * resolution + position.y].owner];
     public PlayerController GetPlayer(int index) => players.ToArray()[index];
+
+    public void ChangeTile(Tile tile, Vector2Int position)
+    {
+        int index = position.x * resolution + position.y;
+        tiles[index] = tile;
+        bufferData.UpdateSingleTile(tiles[index], index / resolution, index % resolution);
+    }
 
     public void AddPlayer(PlayerController player)
     {
@@ -50,8 +58,10 @@ public class World : MonoBehaviour
         }
     }
 
-    public void SetOwner(int index, uint owner)
+    // Instantly updates the buffer using the update single shader
+    public void SetOwnerInstant(Vector2Int pos, uint owner)
     {
+        int index = pos.x * resolution + pos.y;
         if (!(tiles[index].owner == owner) && !tiles[index].IsOcean())
         {
             lock (tiles)
@@ -60,58 +70,16 @@ public class World : MonoBehaviour
         }
     }
 
-    public void SetOwnerFill(Vector2Int start, uint owner)
+    // Updates the buffer when ready
+    public void SetOwner(Vector2Int pos, uint owner)
     {
-        Thread thread = new Thread(new ThreadStart(() =>
+        int index = pos.x * resolution + pos.y;
+        if (!(tiles[index].owner == owner) && !tiles[index].IsOcean())
         {
-            if (tiles[start.x * resolution + start.y].IsOcean())
-                return;
-
-            Queue<Vector2Int> queue = new Queue<Vector2Int>();
-            List<int> visited = new List<int>();
-            queue.Enqueue(start);
-            while (queue.Count > 0)
-            {
-                Vector2Int pos = queue.Dequeue();
-                int index = pos.x * resolution + pos.y;
-                if (!(tiles[index].owner == owner))
-                {
-                    lock (tiles)
-                        tiles[index].owner = owner;
-                    changed = true;
-                }
-
-                Vector2Int newPos = ValidatePosition(new Vector2Int(pos.x + 1, pos.y));
-                index = newPos.x * resolution + newPos.y;
-                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
-                {
-                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
-                    visited.Add(index);
-                }
-                newPos = ValidatePosition(new Vector2Int(pos.x - 1, pos.y));
-                index = newPos.x * resolution + newPos.y;
-                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
-                {
-                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
-                    visited.Add(index);
-                }
-                newPos = ValidatePosition(new Vector2Int(pos.x, pos.y + 1));
-                index = newPos.x * resolution + newPos.y;
-                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
-                {
-                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
-                    visited.Add(index);
-                }
-                newPos = ValidatePosition(new Vector2Int(pos.x, pos.y - 1));
-                index = newPos.x * resolution + newPos.y;
-                if (!tiles[index].IsOcean() && tiles[index].owner == 0 && !visited.Contains(index))
-                {
-                    queue.Enqueue(new Vector2Int(newPos.x, newPos.y));
-                    visited.Add(index);
-                }
-            }
-        }));
-        thread.Start();
+            lock (tiles)
+                tiles[index].owner = owner;
+            changed = true;
+        }
     }
 
     public void SaveWorld(string name)

@@ -344,6 +344,7 @@ GameObject:
   - component: {fileID: 191998060}
   - component: {fileID: 191998059}
   - component: {fileID: 191998058}
+  - component: {fileID: 191998062}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -429,13 +430,28 @@ RectTransform:
   - {fileID: 2050272273}
   - {fileID: 204755714}
   - {fileID: 533782127}
-  m_Father: {fileID: 768821923}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &191998062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 191998057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd24c137293660642b8ad75615e467a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 191998061}
+  text: {fileID: 2050272274}
+  dropdown: {fileID: 1009366374}
 --- !u!1 &204755713
 GameObject:
   m_ObjectHideFlags: 0
@@ -859,57 +875,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 754072914}
   m_CullTransparentMesh: 1
---- !u!1 &768821922
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 768821923}
-  - component: {fileID: 768821924}
-  m_Layer: 0
-  m_Name: UI
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &768821923
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 768821922}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 191998061}
-  - {fileID: 971172689}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &768821924
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 768821922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd24c137293660642b8ad75615e467a6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  text: {fileID: 2050272274}
-  dropdown: {fileID: 1009366374}
-  canvas: {fileID: 191998061}
-  countryNamesParent: {fileID: 533782127}
-  textPrefab: {fileID: 7759775672656411292, guid: 2cc6b7218f5669d41adbb46137c4fd81, type: 3}
 --- !u!1 &971172686
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,7 +941,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 768821923}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1009366372
 GameObject:
@@ -1078,7 +1043,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 768821924}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameUI, Assembly-CSharp
         m_MethodName: SelectCountry
         m_Mode: 5
@@ -2151,4 +2116,5 @@ SceneRoots:
   - {fileID: 566036670}
   - {fileID: 3973856836178107538}
   - {fileID: 2510858081557045406}
-  - {fileID: 768821923}
+  - {fileID: 191998061}
+  - {fileID: 971172689}

@@ -17,16 +17,6 @@ public class PlayerController : MonoBehaviour
     public Vector2Int CursorPosition { get { return cursorPosition; } }
     public MapMode GetMapMode() => mapMode;
     public CameraControls GetControls() => controls;
-    public void SelectCountry(string countryName)
-    {
-        foreach (Country country in World.Instance.Countries)
-        {
-            if (country.name.Equals(countryName))
-            {
-                this.country = country;
-            }
-        }
-    }
 
     public void UpdateBuffers()
     {
@@ -80,17 +70,12 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButton(Inputs.LMB) && (uiManager == null || !uiManager.CursorInCollider()))
         {
-            World.Instance.SetOwner(GetIndex(), country.ID);
+            //World.Instance.SetOwnerInstant(cursorPosition, country.ID);
         }
 
         if (Input.GetButton(Inputs.RMB))
         {
-            World.Instance.SetOwner(GetIndex(), 0);
-        }
-
-        if (Input.GetButtonDown(Inputs.MMB))
-        {
-            World.Instance.SetOwnerFill(cursorPosition, country.ID);
+            //World.Instance.SetOwner(GetIndex(), 0);
         }
 
         if (Input.GetKeyDown(KeyCode.M))
@@ -112,11 +97,6 @@ public class PlayerController : MonoBehaviour
         y = Mathf.Clamp(y, 0, World.Instance.WorldResolution - 1);
 
         cursorPosition = World.Instance.ValidatePosition(new Vector2Int(x, y));
-    }
-
-    private int GetIndex()
-    {
-        return cursorPosition.x * World.Instance.WorldResolution + cursorPosition.y;
     }
 }
 
